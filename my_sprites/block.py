@@ -2,7 +2,7 @@ import pygame
 from constants import WHITE, TILESIZE, tilesides
 
 class BlockV(pygame.sprite.Sprite):
-    def __init__(self, x, y, width=3, height=TILESIZE, alpha=51):
+    def __init__(self, x, y, width=2, height=TILESIZE, alpha=51):
         super().__init__()
         self.image = pygame.Surface((width, height), pygame.SRCALPHA)
         r, g, b = WHITE
@@ -11,7 +11,7 @@ class BlockV(pygame.sprite.Sprite):
 
 
 class BlockH(pygame.sprite.Sprite):
-    def __init__(self, x, y, width=TILESIZE, height=3, alpha=51):
+    def __init__(self, x, y, width=TILESIZE, height=2, alpha=51):
         super().__init__()
         self.image = pygame.Surface((width, height), pygame.SRCALPHA)
         r, g, b = WHITE
