@@ -50,7 +50,7 @@ tilesides= {"road_dirt01": ["T", "B"],
             "road_dirt02": ["L", "T"],
             "road_dirt04": ["T", "R"],
             "road_dirt40": ["R", "B"],
-            "road_dirt42": ["T", "B", "R"],# start tile!!!
+            "road_dirt42": ["T", "B"],# start tile!!!
             "land_grass04": ["T", "B", "R", "L"]}
 
 # CAR, speed na čtverec

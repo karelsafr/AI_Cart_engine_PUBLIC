@@ -2,7 +2,7 @@ import pygame
 from constants import WHITE, TILESIZE, tilesides
 
 class BlockV(pygame.sprite.Sprite):
-    def __init__(self, x, y, width=1, height=TILESIZE, alpha=51):
+    def __init__(self, x, y, width=3, height=TILESIZE, alpha=51):
         super().__init__()
         self.image = pygame.Surface((width, height), pygame.SRCALPHA)
         r, g, b = WHITE
@@ -11,7 +11,7 @@ class BlockV(pygame.sprite.Sprite):
 
 
 class BlockH(pygame.sprite.Sprite):
-    def __init__(self, x, y, width=TILESIZE, height=1, alpha=51):
+    def __init__(self, x, y, width=TILESIZE, height=3, alpha=51):
         super().__init__()
         self.image = pygame.Surface((width, height), pygame.SRCALPHA)
         r, g, b = WHITE
@@ -54,11 +54,11 @@ class Blocks(pygame.sprite.Sprite):
                     if side == "T":
                         block = BlockH(x, y, alpha=self.alpha)                    # horní hrana
                     elif side == "B":
-                        block = BlockH(x, y + self.tile_size, alpha=self.alpha)   # spodní hrana
+                        block = BlockH(x, y + self.tile_size-1, alpha=self.alpha)   # spodní hrana
                     elif side == "L":
                         block = BlockV(x, y, alpha=self.alpha)                    # levá hrana
                     elif side == "R":
-                        block = BlockV(x + self.tile_size, y, alpha=self.alpha)   # pravá hrana
+                        block = BlockV(x + self.tile_size-1, y, alpha=self.alpha)   # pravá hrana
 
                     if block is not None:
                         self.sprites.add(block)
