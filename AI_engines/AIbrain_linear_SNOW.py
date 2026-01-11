@@ -4,13 +4,106 @@ import numpy as np
 import copy
 import string
 
-from NN.nn import NeuralNetwork
-
 # počet vstupů – ideálně = len(RAYCAST_ANGLES)
 N_INPUTS = 9
 N_ACTIONS = 4  # [up, down, left, right]
 
 np.random.seed(42)
+
+# =============================================================================
+# Minimal Neural Network for Inference Only
+# =============================================================================
+
+def sigmoid(x):
+    """Sigmoid activation function"""
+    return 1 / (1 + np.exp(-np.clip(x, -500, 500)))
+
+def relu(x):
+    """ReLU activation function"""
+    return np.maximum(0, x)
+
+def tanh_activation(x):
+    """Tanh activation function"""
+    return np.tanh(x)
+
+ACTIVATIONS = {
+    'sigmoid': sigmoid,
+    'relu': relu,
+    'tanh': tanh_activation,
+    'linear': lambda x: x
+}
+
+class SimpleLayer:
+    """Minimal layer for forward pass only"""
+    
+    def __init__(self, input_size, output_size, activation='relu'):
+        self.input_size = input_size
+        self.output_size = output_size
+        self.activation = ACTIVATIONS.get(activation, relu)
+        
+        # Initialize weights
+        scale = np.sqrt(2.0 / (input_size + output_size))
+        self.weights = np.random.randn(input_size, output_size) * scale
+        self.biases = np.zeros((1, output_size))
+    
+    def forward(self, x):
+        """Forward pass through layer"""
+        z = x @ self.weights + self.biases
+        return self.activation(z)
+    
+    def set_weights(self, weights, biases):
+        """Set weights and biases"""
+        self.weights = weights.copy()
+        self.biases = biases.copy()
+    
+    def get_weights(self):
+        """Get weights and biases"""
+        return self.weights.copy(), self.biases.copy()
+
+class SimpleNeuralNetwork:
+    """Minimal neural network for inference only"""
+    
+    def __init__(self, layer_sizes, activations=None):
+        """
+        Args:
+            layer_sizes: List of layer sizes [input, hidden1, ..., output]
+            activations: List of activation functions for each layer
+        """
+        self.layer_sizes = layer_sizes
+        self.num_layers = len(layer_sizes) - 1
+        
+        if activations is None:
+            activations = ['relu'] * (self.num_layers - 1) + ['sigmoid']
+        
+        # Create layers
+        self.layers = []
+        for i in range(self.num_layers):
+            layer = SimpleLayer(
+                input_size=layer_sizes[i],
+                output_size=layer_sizes[i + 1],
+                activation=activations[i]
+            )
+            self.layers.append(layer)
+    
+    def predict(self, x):
+        """Forward pass through network"""
+        # Ensure x is 2D
+        if x.ndim == 1:
+            x = x.reshape(1, -1)
+        
+        for layer in self.layers:
+            x = layer.forward(x)
+        
+        return x
+    
+    def get_all_weights(self):
+        """Get all weights as list of (weights, biases) tuples"""
+        return [layer.get_weights() for layer in self.layers]
+    
+    def set_all_weights(self, all_weights):
+        """Set all weights from list of (weights, biases) tuples"""
+        for i, (weights, biases) in enumerate(all_weights):
+            self.layers[i].set_weights(weights, biases)
 
 # vždy pojmenováváme jako "AIbrain_jemnoteamu"
 class AIbrain_linear_SNOW:
@@ -117,10 +210,9 @@ class AIbrain_linear_SNOW:
         # zde si vytvoríme promnenne co potrebujeme pro nas model
         # parametry modely vzdy inicializovat v této metode
         
-        self.model_net = NeuralNetwork(
+        self.model_net = SimpleNeuralNetwork(
             layer_sizes=[15, 10, 4, 2],
-            activations=['relu', 'relu', 'sigmoid'],
-            loss='mse'
+            activations=['relu', 'relu', 'sigmoid']
         )
 
         model_params = self.model_net.get_all_weights()
