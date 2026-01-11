@@ -42,6 +42,10 @@ class AIbrain_linear_SNOW:
         # Enhanced input features tracking
         self.prev_speed = 0.0  # For speed delta calculation
         self.prev_steering = 0.5  # For steering momentum (0=left, 1=right, 0.5=straight)
+        
+        # Input noise for robustness (data augmentation)
+        self.input_noise_std = 0.02  # Standard deviation of Gaussian noise added to raycasts
+        self.enable_input_noise = True  # Enable/disable noise augmentation
 
         self.init_param()
 
@@ -181,7 +185,7 @@ class AIbrain_linear_SNOW:
         Enhanced decision function with additional high-impact input features.
         
         Input features (15 total):
-          - 9 raycast distances (obstacle detection)
+          - 9 raycast distances (obstacle detection) + NOISE for robustness
           - 1 normalized speed (current velocity)
           - 1 speed delta (acceleration/deceleration)
           - 1 min distance (closest obstacle)
@@ -197,6 +201,21 @@ class AIbrain_linear_SNOW:
         MAX_SPEED = 500.0
         EPSILON = 0.01  # Small value to avoid division by zero
         
+        # === NOISE AUGMENTATION (for robustness) ===
+        # Add Gaussian noise to raycast inputs to improve generalization
+        if self.enable_input_noise and len(data) > 0:
+            # Convert to numpy array for noise addition
+            raycast_data = np.array(data, dtype=float)
+            # Add Gaussian noise: N(0, input_noise_std)
+            noise = np.random.normal(0, self.input_noise_std, raycast_data.shape)
+            raycast_data = raycast_data + noise
+            # Clamp to valid range [0, 1] for raycasts
+            raycast_data = np.clip(raycast_data, 0.0, 1.0)
+            # Convert back to list for consistency
+            data_noisy = raycast_data.tolist()
+        else:
+            data_noisy = data
+        
         # === FEATURE 1: Normalized Speed ===
         speed_normalized = self.speed / MAX_SPEED
         
@@ -206,9 +225,9 @@ class AIbrain_linear_SNOW:
         self.prev_speed = self.speed
         
         # === FEATURE 3: Min Distance (Danger Awareness) ===
-        # Explicit signal for closest obstacle
-        if len(data) > 0:
-            min_distance = min(data)
+        # Explicit signal for closest obstacle (use noisy data)
+        if len(data_noisy) > 0:
+            min_distance = min(data_noisy)
         else:
             min_distance = 1.0  # Far away if no data
         
@@ -221,9 +240,9 @@ class AIbrain_linear_SNOW:
         
         # === FEATURE 5: Clearance Bias (Left vs Right Space) ===
         # Positive = more space on right, Negative = more space on left
-        if len(data) >= 9:
-            left_clearance = np.mean(data[0:4])   # Left sensors (indices 0-3)
-            right_clearance = np.mean(data[5:9])  # Right sensors (indices 5-8)
+        if len(data_noisy) >= 9:
+            left_clearance = np.mean(data_noisy[0:4])   # Left sensors (indices 0-3)
+            right_clearance = np.mean(data_noisy[5:9])  # Right sensors (indices 5-8)
             clearance_bias = right_clearance - left_clearance
         else:
             clearance_bias = 0.0
@@ -233,9 +252,9 @@ class AIbrain_linear_SNOW:
         prev_steering_normalized = self.prev_steering
         
         # === Build Input Vector ===
-        # Order: 9 raycasts + speed + speed_delta + min_dist + safety + clearance + prev_steer
+        # Order: 9 raycasts (noisy) + speed + speed_delta + min_dist + safety + clearance + prev_steer
         x = np.asarray(
-            data + 
+            data_noisy + 
             [speed_normalized, speed_delta, min_distance, safety_ratio, clearance_bias, prev_steering_normalized],
             dtype=float
         ).ravel()
