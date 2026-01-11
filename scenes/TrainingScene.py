@@ -1,6 +1,5 @@
 import pygame, sys, os
 
-from AI_engines.AIbrain_TeamName import AIbrain_TeamName
 from constants import BLACK, WHITE, TILESIZE, SPEED, MAX_SPEED, tilesides, MAP_BUTTON_FONTSIZE
 from constants import BLACK, GREY, WIDTH, HEIGHT, MAP_MENUSIZE, MAP_BUTTON_IDENT, MAP_BUTTON_HEIGHT, MAP_BUTTON_WIDTH
 from my_sprites.car import car

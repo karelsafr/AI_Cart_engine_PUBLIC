@@ -104,7 +104,7 @@ class BenchmarkScene:
             self.font_small,
             "engines"
         )
-        self.input_engines.set_default("AIbrain_Zero:zero.npz;AIbrain_QERQ:QERQ.npz;ONEX:ONEX.npz;AIbrain_FAST:FAST.npz;AIbrain_ASDF:asdf.npz;SNOW:SNOW.npz;AIbrain_vers:vers.npz;AIbrain_LGBT:LGBT.npz;AIbrain_maie:maie.npz")
+        self.input_engines.set_default("ONEX2:ONEX2.npz; AIbrain_Zero:zero.npz;AIbrain_QERQ:QERQ.npz;ONEX:ONEX.npz;AIbrain_FAST:FAST.npz;AIbrain_ASDF:asdf.npz;SNOW:SNOW.npz;AIbrain_vers:vers.npz;AIbrain_LGBT:LGBT.npz;AIbrain_maie:maie.npz")
 
         # buttons
         self.buttons = [
