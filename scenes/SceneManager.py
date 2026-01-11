@@ -86,3 +86,10 @@ class SceneManager:
     def set_duel(self):
         self.cur_scene = self.duel_scene
         self.cur_scene.restart()
+
+    def add_benchmark(self, benchmark_scene):
+        self.benchmark_scene = benchmark_scene
+
+    def set_benchmark(self):
+        self.cur_scene = self.benchmark_scene
+        self.cur_scene.restart()

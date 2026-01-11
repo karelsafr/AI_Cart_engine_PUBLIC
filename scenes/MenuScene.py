@@ -11,7 +11,7 @@ class MenuScene:
         self.font_input = pygame.font.SysFont(None, int(MENU_FONT_SIZE*0.5))
 
         # položky menu
-        self.items = ["Hraj", "Mapa", "Trénuj", "Souboj", "Konec"]
+        self.items = ["Hraj", "Mapa", "Trénuj", "Souboj", "Benchmark", "Konec"]
         self.selected = 0   # vybrana polozka
 
         self.active = True
@@ -97,6 +97,9 @@ class MenuScene:
         if chosen == "Souboj":
             # zde nic nepotřebuješ předávat, mapa se řeší v DuelScene přes vlastní TextInput
             self.sceene_manager.set_duel()
+
+        if chosen == "Benchmark":
+            self.sceene_manager.set_benchmark()
 
     def is_active(self):
         return self.active

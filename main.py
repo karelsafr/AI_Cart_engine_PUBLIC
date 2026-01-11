@@ -8,6 +8,7 @@ from scenes.TrainingScene import Training
 from core.TextureAtlas import TextureAtlas
 from core.CsvTilemap import CsvTileMap
 from scenes.DuelScene import DuelScene
+from scenes.BenchmarkScene import BenchmarkScene
 # Problematickej mixer resim pres SDL, ted vypnuto
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 ## Start pygame + start modulů!
@@ -26,8 +27,9 @@ pygame.init()
 ### Students part:
 
 #from AI_engines.AIbrain_TeamName import AIbrain_TeamName as trainbrain
-from AI_engines.AIbrain_linear import AIbrain_linear as trainbrain
-
+#from AI_engines.AIbrain_linear import AIbrain_linear as trainbrain
+#from AI_engines.AIbrain_shallow import AIbrain_shallow as trainbrain
+from AI_engines.AIbrain_2layer import AIbrain_2layer as trainbrain
 
 
 #### Students part end here.
@@ -99,7 +101,7 @@ scene_manager.add_training(Training(scene_manager))
 scene_manager.add_brain(trainbrain)
 
 scene_manager.add_duel(DuelScene(scene_manager))
-
+scene_manager.add_benchmark(BenchmarkScene(scene_manager))
 
 
 # cyklus udrzujici okno v chodu

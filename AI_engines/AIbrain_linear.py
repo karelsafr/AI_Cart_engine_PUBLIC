@@ -55,8 +55,8 @@ class AIbrain_linear:
         Tím se skutečně mění lineární kombinace pro každou akci.
         """
         # náhodné perturbace ~ [-0.1, 0.1]
-        delta_W = (np_random.rand(*self.W.shape) - 0.5) * 0.25
-        delta_b = (np_random.rand(*self.b.shape) - 0.5) * 0.25
+        delta_W = (np_random.rand(*self.W.shape) - 0.5) * 0.1
+        delta_b = (np_random.rand(*self.b.shape) - 0.5) * 0.1
 
         self.W = self.W + delta_W
         self.b = self.b + delta_b
