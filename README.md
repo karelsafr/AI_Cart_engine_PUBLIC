@@ -4,6 +4,12 @@ Tento projekt je jednoduchá závodní hra v Pygame, která slouží jako „tes
 Vaším úkolem je navrhnout, naimplementovat a natrénovat vlastní mozek tak, aby se auto naučilo bezpečně a rychle projet trať.
 
 ------------------------------------------------------------
+0. Balíčky
+------------------------------------------------------------
+Engine funguje v aktuální chvíli primárně na pygame-ce (importuje se stejně jen je nutné vyměnit knihovnu). 
+Dále numpy, pandas.
+
+------------------------------------------------------------
 1. Co máte odevzdat
 ------------------------------------------------------------
 
