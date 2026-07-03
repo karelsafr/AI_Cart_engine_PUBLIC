@@ -1,6 +1,7 @@
 import pygame, os
+from pathlib import Path
 from constants import BLACK, WHITE,GREY, WIDTH,HEIGHT, MAP_MENUSIZE, MAP_BUTTON_IDENT, MAP_BUTTON_HEIGHT, MAP_BUTTON_WIDTH
-from constants import tile_path_default_setting_csv, MAP_BUTTON_FONTSIZE
+from constants import tile_path_default_setting_csv, MAP_BUTTON_FONTSIZE, PATH_STUDENT_MAPS
 from UI.MakeGrid import MakeGrid
 from constants import TILESIZE
 from core.VectorIterator import VectorIterator
@@ -13,9 +14,10 @@ class savemap:
         self.mapname = filename
     def action(self):
         print("zmacklo se SAVE tlačítko")
+        Path(self.mapname).parent.mkdir(parents=True, exist_ok=True)
         self.scene_manager.cur_tmap.save_csv(self.mapname)
     def update_text(self,filename):
-        self.mapname = "UserData/"+filename+".csv"
+        self.mapname = str(Path(PATH_STUDENT_MAPS) / f"{filename}.csv")
 
 
 class load_tmap:
@@ -28,7 +30,7 @@ class load_tmap:
         else:
             print(f"ERROR: {self.filename} non existent")
     def update_text(self,filename):
-        self.filename = "UserData/"+filename+".csv"
+        self.filename = str(Path(PATH_STUDENT_MAPS) / f"{filename}.csv")
 
 # jen testovací mapa:
 class MapEditor:
@@ -48,10 +50,10 @@ class MapEditor:
         self.buttons = [
             Button((WIDTH-MAP_MENUSIZE+ MAP_BUTTON_IDENT, 0+TILESIZE), (MAP_BUTTON_WIDTH, MAP_BUTTON_HEIGHT),
                    "Save map",self.font,
-                   savemap(self.scene_manager, "UserData/DefaultTiles_USER.csv"), "text_update"),
+                   savemap(self.scene_manager, str(Path(PATH_STUDENT_MAPS) / "DefaultTiles_USER.csv")), "text_update"),
             Button((WIDTH - MAP_MENUSIZE + MAP_BUTTON_IDENT, 0 + TILESIZE*2), (MAP_BUTTON_WIDTH, MAP_BUTTON_HEIGHT),
                    "Load", self.font,
-                   load_tmap(self.scene_manager, "UserData/DefaultTiles_USER.csv"),# sem pak konkrenti jmeno
+                   load_tmap(self.scene_manager, str(Path(PATH_STUDENT_MAPS) / "DefaultTiles_USER.csv")),# sem pak konkrenti jmeno
                    "text_update"),
             Button((WIDTH - MAP_MENUSIZE + MAP_BUTTON_IDENT, 0 + TILESIZE*3), (MAP_BUTTON_WIDTH, MAP_BUTTON_HEIGHT),
                    "RESET", self.font,

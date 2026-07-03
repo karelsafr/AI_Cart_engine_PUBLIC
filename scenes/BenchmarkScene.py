@@ -1,6 +1,5 @@
 import os
 import csv
-import importlib
 from pathlib import Path
 from datetime import datetime
 
@@ -11,7 +10,7 @@ from constants import (
     BLACK, WHITE,
     WIDTH, TILESIZE,
     MAP_MENUSIZE, MAP_BUTTON_IDENT, MAP_BUTTON_WIDTH, MAP_BUTTON_HEIGHT, MAP_BUTTON_FONTSIZE,
-    tilesides, PATH_SAVES
+    tilesides, PATH_SAVES, PATH_BENCHMARK_AGENTS, PATH_BENCHMARK_RESULTS
 )
 from my_sprites.AI_car import AI_car
 from my_sprites.block import Blocks
@@ -39,6 +38,16 @@ class BenchmarkScene:
     """
     Benchmark více mozků na jedné mapě.
 
+    Doporučený workflow:
+      seznam agentů načíst z students/benchmark_agents.yaml
+
+    Podporovaný YAML formát:
+      agents:
+        - agent: AIbrain_A
+          save: AIbrain_A.npz
+        - agent: AIbrain_B
+          save: AIbrain_B.npz
+
     Engines input formát (jedno pole):
       "AIbrain_A:AIbrain_A.npz; AIbrain_B:AIbrain_B.npz; AIbrain_linear:userbrain.npz"
 
@@ -54,6 +63,8 @@ class BenchmarkScene:
 
         self.font = pygame.font.SysFont(None, MAP_BUTTON_FONTSIZE)
         self.font_small = pygame.font.SysFont(None, int(MAP_BUTTON_FONTSIZE * 0.7))
+        self.font_car_number = pygame.font.SysFont(None, max(23, int(MAP_BUTTON_FONTSIZE * 0.68)), bold=True)
+        self.font_benchmark_label = pygame.font.SysFont(None, max(16, int(MAP_BUTTON_FONTSIZE * 0.45)))
 
         self.active = True
 
@@ -98,25 +109,32 @@ class BenchmarkScene:
         )
         self.input_output.set_default("benchmark_results.csv")
 
-        # engines list
-        self.input_engines = TextInput(
+        # agents config file
+        self.input_agents_file = TextInput(
             pygame.Rect(x0, 5 + TILESIZE * 2.5, MAP_BUTTON_WIDTH, int(MAP_BUTTON_HEIGHT * 0.7)),
             self.font_small,
-            "engines"
+            "agents_file"
         )
-        self.input_engines.set_default("ONEX2:ONEX2.npz; AIbrain_Zero:zero.npz;AIbrain_QERQ:QERQ.npz;ONEX:ONEX.npz;AIbrain_FAST:FAST.npz;AIbrain_ASDF:asdf.npz;SNOW:SNOW.npz;AIbrain_vers:vers.npz;AIbrain_LGBT:LGBT.npz;AIbrain_maie:maie.npz")
+        self.input_agents_file.set_default("benchmark_agents.yaml")
+
+        # fallback engines list
+        self.input_engines = TextInput(
+            pygame.Rect(x0, 5 + TILESIZE * 3.0, MAP_BUTTON_WIDTH, int(MAP_BUTTON_HEIGHT * 0.7)),
+            self.font_small,
+            "engines_fallback"
+        )
 
         # buttons
         self.buttons = [
             Button(
-                (x0, 0 + TILESIZE * 3.2),
+                (x0, 0 + TILESIZE * 4.0),
                 (MAP_BUTTON_WIDTH, MAP_BUTTON_HEIGHT),
                 "LOAD MAP",
                 self.font,
                 _LoadMapButton(self)
             ),
             Button(
-                (x0, 0 + TILESIZE * 4.2),
+                (x0, 0 + TILESIZE * 5.0),
                 (MAP_BUTTON_WIDTH, MAP_BUTTON_HEIGHT),
                 "START BENCHMARK",
                 self.font,
@@ -175,13 +193,7 @@ class BenchmarkScene:
 
     def load_map(self):
         name = self.input_map.get_text("DefaultRace")
-
-        if name in ("DefaultRace", "DefaultReset"):
-            prefix = "DefaultSettings/"
-        else:
-            prefix = "UserData/"
-
-        map_file = prefix + name + ".csv"
+        map_file = self.scene_manager.resolve_map_path(name)
         if not os.path.exists(map_file):
             print(f"ERROR: mapa {map_file} neexistuje")
             return
@@ -281,17 +293,123 @@ class BenchmarkScene:
 
         return out
 
+    @staticmethod
+    def _strip_comment(line: str) -> str:
+        return line.split("#", 1)[0].strip()
+
+    @staticmethod
+    def _clean_yaml_value(value: str) -> str:
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in ("'", '"'):
+            return value[1:-1]
+        return value
+
+    def _resolve_agents_file_path(self, raw_path: str) -> Path:
+        raw = (raw_path or "").strip()
+        if not raw:
+            raw = PATH_BENCHMARK_AGENTS
+
+        path = Path(raw)
+        if not path.is_absolute() and path.parent == Path("."):
+            path = Path(PATH_BENCHMARK_AGENTS).parent / path
+        return path
+
+    def _parse_agents_yaml(self, text: str) -> list[tuple[str, str]]:
+        """
+        Minimalni YAML parser pro jednoduche benchmark konfiguraky.
+        Schvalne nepouziva PyYAML, aby studenti nemuseli nic doinstalovavat.
+        """
+        rows: list[dict[str, str]] = []
+        current: dict[str, str] | None = None
+
+        for raw_line in text.splitlines():
+            line = self._strip_comment(raw_line)
+            if not line or line == "agents:":
+                continue
+
+            if line.startswith("-"):
+                if current:
+                    rows.append(current)
+                current = {}
+
+                rest = line[1:].strip()
+                if rest:
+                    if ":" in rest:
+                        key, value = rest.split(":", 1)
+                        key = key.strip()
+                        value = self._clean_yaml_value(value)
+                        if key in ("agent", "engine", "class", "name"):
+                            current["agent"] = value
+                        elif key in ("save", "save_file", "file", "npz"):
+                            current["save"] = value
+                        elif value:
+                            current["agent"] = key
+                            current["save"] = value
+                    else:
+                        current["agent"] = rest
+                continue
+
+            if current is not None and ":" in line:
+                key, value = line.split(":", 1)
+                key = key.strip()
+                value = self._clean_yaml_value(value)
+                if key in ("agent", "engine", "class", "name"):
+                    current["agent"] = value
+                elif key in ("save", "save_file", "file", "npz"):
+                    current["save"] = value
+
+        if current:
+            rows.append(current)
+
+        out: list[tuple[str, str]] = []
+        for row in rows:
+            agent = (row.get("agent") or "").strip()
+            save = (row.get("save") or "userbrain.npz").strip()
+            if agent:
+                out.append((agent, save))
+
+        return out
+
+    def _load_engines_from_file(self, raw_path: str) -> list[tuple[str, str]]:
+        path = self._resolve_agents_file_path(raw_path)
+        if not path.is_file():
+            print(f"VAROVÁNÍ: benchmark soubor {path.as_posix()} neexistuje, použiji ruční fallback pole")
+            return []
+
+        text = path.read_text(encoding="utf-8-sig")
+        suffix = path.suffix.lower()
+
+        if suffix in (".yaml", ".yml"):
+            engines = self._parse_agents_yaml(text)
+        else:
+            engines = self._parse_engines(text.replace("\n", ";"))
+
+        if engines:
+            print(f"Benchmark načetl {len(engines)} agentů ze souboru {path.as_posix()}")
+        else:
+            print(f"VAROVÁNÍ: benchmark soubor {path.as_posix()} neobsahuje žádné agenty")
+
+        return engines
+
+    def _get_benchmark_engines(self) -> list[tuple[str, str]]:
+        engines = self._load_engines_from_file(self.input_agents_file.get_text("benchmark_agents.yaml") or "")
+        if engines:
+            return engines
+        return self._parse_engines(self.input_engines.get_text("") or "")
+
     def _load_brain(self, engine_class_name: str, save_file_name: str):
         try:
-            module = importlib.import_module(f"AI_engines.{engine_class_name}")
-            BrainClass = getattr(module, engine_class_name)
+            BrainClass = self.scene_manager.get_agent_class(engine_class_name)
+            if BrainClass is None:
+                raise ImportError(f"agent '{engine_class_name}' neni v registry")
         except Exception as e:
-            print(f"ERROR: nelze importovat AI_engines.{engine_class_name}: {e}")
+            print(f"ERROR: nelze nacist agenta {engine_class_name}: {e}")
             return None
 
         brain = BrainClass()
 
         params_path = Path(PATH_SAVES) / save_file_name
+
         if params_path.is_file():
             try:
                 params = np.load(params_path)
@@ -318,9 +436,9 @@ class BenchmarkScene:
         self.finish_col = int(self.input_finish_col.get_int(self.finish_col) or self.finish_col)
         self.finish_rect = self._finish_tile_rect(self.finish_row, self.finish_col)
 
-        engines = self._parse_engines(self.input_engines.get_text("") or "")
+        engines = self._get_benchmark_engines()
         if not engines:
-            print("ERROR: seznam enginů je prázdný")
+            print("ERROR: seznam agentů pro benchmark je prázdný")
             return
 
         self._reset_run_state(keep_map=True)
@@ -344,6 +462,7 @@ class BenchmarkScene:
             car.has_finished = False
             car.finish_time = None
             car.status = "RUNNING"
+            car.benchmark_order = i + 1
 
             self.cars_group.add(car)
             self.cars.append(car)
@@ -392,12 +511,14 @@ class BenchmarkScene:
             brain_name = getattr(brain, "NAME", "<noname>")
             engine_class = getattr(brain, "_engine_class", "<unknown>")
             source_file = getattr(brain, "_source_file", "<unknown>")
+            benchmark_order = int(getattr(car, "benchmark_order", 0))
 
             finish_time = car.finish_time
             status = getattr(car, "status", "UNKNOWN")
             dist_tiles = float(getattr(car, "logs_distance", 0.0))
 
             self.results.append({
+                "benchmark_order": benchmark_order,
                 "brain_name": str(brain_name),
                 "engine_class": str(engine_class),
                 "save_file": str(source_file),
@@ -406,15 +527,13 @@ class BenchmarkScene:
                 "distance_tiles": dist_tiles
             })
 
-        # seřazení:
+        # Závodní pořadí:
         # 1) FINISHED podle času
-        # 2) ostatní až za nimi, pro přehled je řadím podle distance_tiles sestupně
-        def key(r):
-            if r["status"] == "FINISHED" and r["finish_time_s"] is not None:
-                return (0, r["finish_time_s"])
-            return (1, -r["distance_tiles"])
-
-        self.results.sort(key=key)
+        # 2) TIMEOUT
+        # 3) CRASH
+        # 4) OUT
+        # distance_tiles zůstává jen jako diagnostická metrika, ne jako rank.
+        self.results.sort(key=self._result_sort_key)
 
         # lines pro vykreslení
         self.results_lines = []
@@ -422,8 +541,29 @@ class BenchmarkScene:
             t = r["finish_time_s"]
             t_str = f"{t:.2f}s" if t is not None else "-"
             self.results_lines.append(
-                f"{idx}. {r['brain_name']} | {r['status']} | time={t_str} | dist={r['distance_tiles']:.2f} | {r['engine_class']} | {r['save_file']}"
+                f"{idx}. #{r['benchmark_order']} {r['brain_name']} | {r['status']} | time={t_str} | dist={r['distance_tiles']:.2f} | {r['engine_class']} | {r['save_file']}"
             )
+
+    @staticmethod
+    def _result_sort_key(result: dict):
+        order = result.get("benchmark_order", 999999)
+        try:
+            order = int(order)
+        except (TypeError, ValueError):
+            order = 999999
+
+        status = str(result.get("status", "UNKNOWN"))
+        finish_time = result.get("finish_time_s")
+        if status == "FINISHED" and finish_time is not None:
+            return (0, float(finish_time), order)
+
+        status_priority = {
+            "TIMEOUT": 1,
+            "CRASH": 2,
+            "OUT": 3,
+        }.get(status, 4)
+
+        return (status_priority, 0.0, order)
 
     def _resolve_output_path(self) -> Path:
         raw = (self.input_output.get_text("benchmark_results.csv") or "").strip()
@@ -436,9 +576,9 @@ class BenchmarkScene:
         if p.suffix.lower() != ".csv":
             p = p.with_suffix(".csv")
 
-        # pokud uživatel nezadal složku, ulož do UserData/
+        # pokud uživatel nezadal složku, ulož do students/results/
         if not p.is_absolute() and p.parent == Path("."):
-            p = Path("UserData") / p
+            p = Path(PATH_BENCHMARK_RESULTS) / p
 
         p.parent.mkdir(parents=True, exist_ok=True)
         return p
@@ -453,6 +593,7 @@ class BenchmarkScene:
             w = csv.writer(f)
             w.writerow([
                 "rank",
+                "benchmark_order",
                 "map_name",
                 "finish_row",
                 "finish_col",
@@ -469,6 +610,7 @@ class BenchmarkScene:
             for rank, r in enumerate(self.results, start=1):
                 w.writerow([
                     rank,
+                    r["benchmark_order"],
                     map_name,
                     self.finish_row,
                     self.finish_col,
@@ -490,6 +632,7 @@ class BenchmarkScene:
             self.input_finish_row, self.input_finish_col,
             self.input_time_limit,
             self.input_output,
+            self.input_agents_file,
             self.input_engines
         ):
             inp.update(dt)
@@ -559,6 +702,7 @@ class BenchmarkScene:
 
         # auta
         self.cars_group.draw(screen)
+        self._draw_car_numbers(screen)
 
         # UI
         for inp in (
@@ -566,6 +710,7 @@ class BenchmarkScene:
             self.input_finish_row, self.input_finish_col,
             self.input_time_limit,
             self.input_output,
+            self.input_agents_file,
             self.input_engines
         ):
             inp.draw(screen)
@@ -583,12 +728,101 @@ class BenchmarkScene:
         surf = self.font_small.render(txt, True, WHITE)
         screen.blit(surf, (20, 20))
 
-        # výsledky (prvních pár řádků)
-        y = 50
-        for line in self.results_lines[:12]:
-            s = self.font_small.render(line, True, WHITE)
-            screen.blit(s, (20, y))
-            y += self.font_small.get_linesize()
+        if self.benchmark_active:
+            self._draw_benchmark_labels(screen, 50)
+        else:
+            # výsledky (prvních pár řádků)
+            y = 50
+            for line in self.results_lines[:12]:
+                s = self.font_small.render(line, True, WHITE)
+                screen.blit(s, (20, y))
+                y += self.font_small.get_linesize()
+
+    def _draw_car_numbers(self, screen):
+        if not self.cars:
+            return
+
+        for car in self.cars:
+            order = getattr(car, "benchmark_order", None)
+            if order is None:
+                continue
+
+            pos = getattr(car, "pos", None)
+            if pos is not None:
+                x = int(pos.x)
+                y = int(pos.y)
+            else:
+                x, y = car.rect.center
+
+            if self.map_w_px and self.map_h_px:
+                if x < 0 or y < 0 or x >= self.map_w_px or y >= self.map_h_px:
+                    continue
+
+            text = str(order)
+            outline = self.font_car_number.render(text, True, BLACK)
+            outline_rect = outline.get_rect(center=(x, y))
+            for dx, dy in ((-2, 0), (2, 0), (0, -2), (0, 2), (-2, -2), (-2, 2), (2, -2), (2, 2)):
+                screen.blit(outline, outline_rect.move(dx, dy))
+
+            label = self.font_car_number.render(text, True, (255, 245, 0))
+            rect = label.get_rect(center=(x, y))
+            screen.blit(label, rect)
+
+    def _draw_benchmark_labels(self, screen, y_start):
+        if not self.cars:
+            return
+
+        x = 20
+        y = y_start
+        max_width = max(120, WIDTH - MAP_MENUSIZE - x - 20)
+        line_h = self.font_benchmark_label.get_linesize()
+        bottom = screen.get_height() - line_h
+
+        cars = sorted(self.cars, key=self._benchmark_order_key)
+        for car in cars:
+            order = getattr(car, "benchmark_order", None)
+            if order is None:
+                continue
+
+            text = f"#{order} {self._car_brain_name(car)}"
+            text = self._fit_text(text, self.font_benchmark_label, max_width)
+            label = self.font_benchmark_label.render(text, True, WHITE)
+            screen.blit(label, (x, y))
+
+            y += line_h
+            if y > bottom:
+                break
+
+    @staticmethod
+    def _car_brain_name(car):
+        brain = getattr(car, "brain", None)
+        if brain is None:
+            return "<noname>"
+        return str(getattr(brain, "NAME", None) or getattr(brain, "_engine_class", "<noname>"))
+
+    @staticmethod
+    def _benchmark_order_key(car):
+        order = getattr(car, "benchmark_order", None)
+        if order is None:
+            return 999999
+        try:
+            return int(order)
+        except (TypeError, ValueError):
+            return 999999
+
+    @staticmethod
+    def _fit_text(text, font, max_width):
+        if font.size(text)[0] <= max_width:
+            return text
+
+        suffix = "..."
+        available = max(0, max_width - font.size(suffix)[0])
+        trimmed = ""
+        for ch in text:
+            if font.size(trimmed + ch)[0] > available:
+                break
+            trimmed += ch
+        return trimmed.rstrip() + suffix
 
     def event(self, event):
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
@@ -602,6 +836,7 @@ class BenchmarkScene:
             self.input_finish_row, self.input_finish_col,
             self.input_time_limit,
             self.input_output,
+            self.input_agents_file,
             self.input_engines
         ):
             inp.handle_event(event)

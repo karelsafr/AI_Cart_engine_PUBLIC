@@ -15,6 +15,13 @@ class Button:
         self._txt_surf = self.font.render(self.text, True, (20, 20, 20))
         self._txt_rect = self._txt_surf.get_rect(center=self.rect.center)
 
+    def set_text(self, text):
+        if self.text == text:
+            return
+        self.text = text
+        self._txt_surf = self.font.render(self.text, True, (20, 20, 20))
+        self._txt_rect = self._txt_surf.get_rect(center=self.rect.center)
+
     def handle_event(self, event):
         if event.type == pygame.MOUSEMOTION:
             self.hover = self.rect.collidepoint(event.pos)

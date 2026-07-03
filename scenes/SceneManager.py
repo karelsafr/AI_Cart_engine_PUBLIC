@@ -1,5 +1,6 @@
 from core.CsvTilemap import CsvTileMap
-from constants import EMPTY_TILE
+from pathlib import Path
+from constants import EMPTY_TILE, PATH_DEFAULT_SETTINGS, PATH_STUDENT_MAPS
 
 class SceneManager:
     def __init__(self, screen):
@@ -74,11 +75,70 @@ class SceneManager:
     def is_active(self):
         return self.cur_scene.is_active()
 
+    def add_agent_registry(self, agent_registry):
+        self.agent_registry = agent_registry
+        self.brain_name = agent_registry.default_name()
+        self.brain = agent_registry.default_agent()
+
+        if self.brain_name is None:
+            print("ERROR: nebyl nalezen zadny platny agent")
+        else:
+            print(f"Vychozi agent pro trening: {self.brain_name}")
+
     def add_brain(self,brain):
         self.brain = brain
 
     def get_brain(self):
         return self.brain
+
+    def set_brain(self, brain_name):
+        if not hasattr(self, "agent_registry"):
+            print("ERROR: AgentRegistry neni inicializovany")
+            return False
+
+        selected_name = (brain_name or "").strip() or self.agent_registry.default_name()
+        brain = self.agent_registry.get(selected_name)
+        if brain is None:
+            print(f"ERROR: agent '{brain_name}' nebyl nalezen. Dostupni agenti: {', '.join(self.get_agent_names())}")
+            return False
+
+        self.brain = brain
+        self.brain_name = selected_name
+        print(f"Agent pro trening nastaven: {self.brain_name}")
+        return True
+
+    def get_brain_name(self):
+        return getattr(self, "brain_name", None)
+
+    def get_agent_names(self):
+        if not hasattr(self, "agent_registry"):
+            return []
+        return self.agent_registry.names()
+
+    def get_agent_class(self, agent_name):
+        if not hasattr(self, "agent_registry"):
+            return None
+        return self.agent_registry.get(agent_name)
+
+    def resolve_map_path(self, map_name):
+        name = (map_name or "").strip()
+        if not name:
+            name = "DefaultRace"
+
+        if name.endswith(".csv"):
+            explicit_path = Path(name)
+            if explicit_path.is_file():
+                return explicit_path
+            name = explicit_path.stem
+
+        if name in ("DefaultRace", "DefaultReset"):
+            return Path(PATH_DEFAULT_SETTINGS) / f"{name}.csv"
+
+        student_path = Path(PATH_STUDENT_MAPS) / f"{name}.csv"
+        if student_path.is_file():
+            return student_path
+
+        return student_path
 
     def add_duel(self, duel_scene):
         self.duel_scene = duel_scene

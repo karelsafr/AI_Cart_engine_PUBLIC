@@ -1,0 +1,4 @@
+run_id,timestamp,agent_name,map_name,mode,generation,completed_generations,generations_total,best_score,avg_score,median_score,crashed_count,cars_total,cars_active,best_score_all,stagnation_epochs,time_s,max_time_s,save_as,load_from
+20260703_094636_418914_AIbrain_linear_DefaultRace_userbrain,2026-07-03T09:46:41,AIbrain_linear,DefaultSettings/DefaultRace.csv,start,0,1,10,0.0,0.0,0.0,0,3,3,0.0,0,5.42,10.0,userbrain.npz,userbrain.npz
+20260703_094636_418914_AIbrain_linear_DefaultRace_userbrain,2026-07-03T09:46:46,AIbrain_linear,DefaultSettings/DefaultRace.csv,start,1,2,10,3.499645,0.074113,0.0,2,300,298,3.499645,0,4.334,10.0,userbrain.npz,userbrain.npz
+20260703_094636_418914_AIbrain_linear_DefaultRace_userbrain,2026-07-03T09:46:50,AIbrain_linear,DefaultSettings/DefaultRace.csv,start,2,3,10,3.461404,1.26863,0.587093,65,300,235,3.499645,1,4.195,10.0,userbrain.npz,userbrain.npz

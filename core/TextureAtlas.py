@@ -59,16 +59,6 @@ class TextureAtlas:
                     tile = tile.convert()
 
             self.surfaces[name] = tile
-
-
-            # ideálně převést na formát obrazovky (po set_mode), ale nemusí být k dispozici:
-            if pygame.display.get_surface() is not None:
-                try:
-                    tile = tile.convert_alpha()
-                except pygame.error:
-                    tile = tile.convert()
-
-            self.surfaces[name] = tile
             self.rects[name] = rect
             count += 1
 

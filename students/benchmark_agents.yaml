@@ -1,0 +1,29 @@
+# Seznam agentu pro Benchmark.
+# Kazda polozka rika: kterou tridu agenta nacist a ktery .npz save ze students/saves pouzit.
+#
+# Format:
+# agents:
+#   - agent: AIbrain_MujTeam
+#     save: AIbrain_MujTeam.npz
+
+agents:
+  - agent: ONEX2
+    save: ONEX2.npz
+  - agent: AIbrain_Zero
+    save: zero.npz
+  - agent: AIbrain_QERQ
+    save: QERQ.npz
+  - agent: ONEX
+    save: ONEX.npz
+  - agent: AIbrain_FAST
+    save: FAST.npz
+  - agent: AIbrain_ASDF
+    save: asdf.npz
+  - agent: SNOW
+    save: SNOW.npz
+  - agent: AIbrain_vers
+    save: vers.npz
+  - agent: AIbrain_LGBT
+    save: LGBT.npz
+  - agent: AIbrain_maie
+    save: maie.npz

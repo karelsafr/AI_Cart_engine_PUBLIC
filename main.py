@@ -1,4 +1,4 @@
-import pygame, sys, os
+import pygame, sys, os, matplotlib
 import numpy as np
 from scenes.MenuScene import MenuScene
 from scenes.SceneManager import SceneManager
@@ -7,6 +7,7 @@ from scenes.PlayGameScene import PlayGame
 from scenes.TrainingScene import Training
 from core.TextureAtlas import TextureAtlas
 from core.CsvTilemap import CsvTileMap
+from core.AgentRegistry import AgentRegistry
 from scenes.DuelScene import DuelScene
 from scenes.BenchmarkScene import BenchmarkScene
 # Problematickej mixer resim pres SDL, ted vypnuto
@@ -24,15 +25,7 @@ pygame.init()
 ############################################################
 ############################################################
 ############################################################
-### Students part:
-
-#from AI_engines.AIbrain_TeamName import AIbrain_TeamName as trainbrain
-#from AI_engines.AIbrain_linear import AIbrain_linear as trainbrain
-#from AI_engines.AIbrain_shallow import AIbrain_shallow as trainbrain
-from AI_engines.AIbrain_2layer import AIbrain_2layer as trainbrain
-
-
-#### Students part end here.
+### Agents are loaded automatically from students/agents/ and AI_engines/.
 ############################################################
 ############################################################
 
@@ -93,12 +86,19 @@ scene_manager.set_default_tmap_name(tile_path_default_setting_csv)
 scene_manager.set_TILESIZE(TILESIZE)
 scene_manager.set_vehicle_atlas(vehicles_atlas)
 
+agent_registry = AgentRegistry().discover()
+print("Nalezeni agenti:", ", ".join(agent_registry.names()) or "zadni")
+if agent_registry.errors:
+    print("Agenti preskoceni pri nacitani:")
+    for agent_name, error in agent_registry.errors.items():
+        print(f" - {agent_name}: {error}")
+scene_manager.add_agent_registry(agent_registry)
+
 # registrace polozek menu, vzdy  registruji do scene manager a manager naopak do scény
 scene_manager.add_menu(MenuScene(scene_manager))
 scene_manager.add_mapeditor(MapEditor(scene_manager, tilecicle))
 scene_manager.add_playgame(PlayGame(scene_manager))
 scene_manager.add_training(Training(scene_manager))
-scene_manager.add_brain(trainbrain)
 
 scene_manager.add_duel(DuelScene(scene_manager))
 scene_manager.add_benchmark(BenchmarkScene(scene_manager))

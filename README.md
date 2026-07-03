@@ -1,285 +1,426 @@
-AI engines training – návod pro studenty
+# AI Cart V2 - návod pro studenty
 
-Tento projekt je jednoduchá závodní hra v Pygame, která slouží jako „testovací polygon“ pro trénování vlastních AI agentů (mozků) řízení auta.
-Vaším úkolem je navrhnout, naimplementovat a natrénovat vlastní mozek tak, aby se auto naučilo bezpečně a rychle projet trať.
+AI Cart V2 je jednoduchý Pygame závodní engine pro evoluční trénování AI agentů. Student píše vlastní "mozek" auta, trénuje ho na mapě, uloží parametry do `.npz` souboru a potom se agent může porovnávat v duelu nebo benchmarku.
 
-------------------------------------------------------------
-0. Balíčky
-------------------------------------------------------------
-Engine funguje v aktuální chvíli primárně na pygame-ce (importuje se stejně jen je nutné vyměnit knihovnu). 
-Dále numpy, pandas.
+Engine a studentská práce jsou oddělené. Studenti běžně pracují jen ve složce `students/`.
 
-------------------------------------------------------------
-1. Co máte odevzdat
-------------------------------------------------------------
+## Rychlý start
 
-Každý tým odevzdá dva soubory se stejným základním jménem:
+Spouštějte projekt z kořene `AI_Cart_engine_V2/`.
 
-1) Zdrojový kód mozku
-   - Soubor: AIbrain_/AIbrain_<NazevTymu>.py
-   - Třída uvnitř: AIbrain_<NazevTymu>
-   - Příklad: AI_engines/AIbrain_SAFR.py s třídou AIbrain_SAFR
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install pygame numpy
+python main.py
+```
 
-2) Natrénované parametry mozku
-   - Soubor: UserData/SAVES/AIbrain_<NazevTymu>.npz
-   - Vznikne uložením z tréninkové scény (viz níže, pole save_as)
-   - Příklad: UserData/SAVES/AIbrain_SAFR.npz
+Na Windows použijte aktivaci virtuálního prostředí podle svého terminálu, například `.venv\Scripts\activate`.
 
-Oba soubory (.py i .npz) pak odevzdejte dle instrukcí vyučujícího.
-Na základě těchto souborů se následně spustí souboje mozků (Duel) mezi jednotlivými týmy.
+## Co odevzdává tým
 
-------------------------------------------------------------
-2. Co smíte a nesmíte v kódu měnit
-------------------------------------------------------------
+Každý tým odevzdává hlavně tyto dva soubory:
 
-Smíte:
+```text
+students/agents/AIbrain_<NazevTymu>.py
+students/saves/AIbrain_<NazevTymu>.npz
+```
 
-1) Přidat svůj mozek do složky AI_engines/
-   - Vytvořit nový soubor AIbrain_<NazevTymu>.py na základě vzorů:
-     - AI_engines/AIbrain_linear.py – jednoduchý lineární mozek
-     - AI_engines/AIbrain_TeamName.py – demonstrační šablona
-2) Upravit jediný import v main.py v sekci „Students part“ – tj. vybrat, který mozek se má používat při tréninku:
+První soubor je zdrojový kód agenta. Druhý soubor jsou natrénované parametry uložené z tréninku.
 
+Příklad:
 
-   Výchozí (ukázkový) mozek:
+```text
+students/agents/AIbrain_SAFR.py
+students/saves/AIbrain_SAFR.npz
+```
 
-   from AI_engines.AIbrain_linear import AIbrain_linear as trainbrain
+Soubor agenta a třída uvnitř musí mít stejné jméno:
 
+```python
+class AIbrain_SAFR:
+    ...
+```
 
-   Pro váš tým to má vypadat např. takto:
+## Co studenti smí měnit
 
-   from AI_engines.AIbrain_SAFR import AIbrain_SAFR as trainbrain
+Studenti mohou přidávat a upravovat:
 
-Nesmíte:
+- `students/agents/AIbrain_<NazevTymu>.py`
+- `students/saves/*.npz`
+- `students/maps/*.csv`
+- případně `students/benchmark_agents.yaml`, pokud připravují vlastní benchmark
 
-- Měnit žádné jiné moduly ani soubory hry (scény, sprity, správu aut, duel atd.).
-- Měnit rozhraní tříd AI_car, Car_manager, SceneManager atd.
-- Měnit strukturu složek, názvy souborů mimo svého mozku a svých .npz uložených v UserData/SAVES/.
+Studenti by neměli měnit engine:
 
-Jediné dvě oblasti, kde píšete svůj kód, jsou:
+- `core/`
+- `scenes/`
+- `my_sprites/`
+- `UI/`
+- `main.py`
+- `constants.py`
+- `AI_engines/`
 
-- nový soubor AI_engines/AIbrain_<NazevTymu>.py
-- úprava jednoho importu v main.py v sekci „### Students part“
+`AI_engines/` slouží jako vestavěné ukázky a šablony, ne jako místo pro studentské odevzdání.
 
-------------------------------------------------------------
-3. Jak vypadá „mozek“ (AI brain)
-------------------------------------------------------------
+## Struktura studentské práce
 
-Mozek je Python třída, kterou hra používá k rozhodování o ovládání auta. Vstupy jsou zejména vzdálenosti paprsků (raycast) od překážek,
-výstupy jsou čtyři „akce“:
+```text
+students/
+├── agents/      # Python soubory agentů
+├── saves/       # uložené .npz parametry
+├── maps/        # vlastní .csv mapy
+├── results/     # benchmarky, logy tréninku a grafy
+└── benchmark_agents.yaml
+```
 
-- index 0 – dopředu (plyn)
-- index 1 – dozadu (brzda)
-- index 2 – doleva (zatáčení)
-- index 3 – doprava
+Agenti se načítají automaticky ze dvou míst:
 
-Minimální požadavky na třídu mozku:
+1. `students/agents/`
+2. `AI_engines/`
 
-- Třída se jmenuje AIbrain_<NazevTymu>.
-- Je v souboru AIbrain_<NazevTymu>.py ve složce AI_engines/.
-- Implementuje stejné rozhraní jako AIbrain_linear, zejména metody:
+Pokud existuje agent se stejným názvem v obou složkách, přednost má verze ve `students/agents/`.
 
-  - __init__(self) + init_param(self)
-    - vytvoření a inicializace parametrů modelu
-    - nastavení self.NAME
-    - volání self.store()
+Výchozí agent po spuštění je `AIbrain_linear`.
 
-  - decide(self, data)
-    - přijímá seznam/vektor vzdáleností paprsků
-    - vrací 4 čísla (pro akce [up, down, left, right])
-    - hra pak používá práh > 0.5
+## Jak má vypadat agent
 
-  - mutate(self)
-    - náhodně pozmění parametry modelu (nutné pro evoluční trénink)
+Agent je Python třída, kterou auto používá pro rozhodování. Vstupem do rozhodování jsou vzdálenosti paprsků od překážek. Výstupem jsou čtyři hodnoty:
 
-  - store(self)
-    - uloží všechny parametry do slovníku self.parameters
+```text
+index 0 - plyn
+index 1 - brzda
+index 2 - doleva
+index 3 - doprava
+```
 
-  - get_parameters(self) a set_parameters(self, parameters)
-    - ukládání/načítání parametrů (používá se při SAVE/LOAD a v Duelu)
+Auto bere akci jako aktivní, pokud je hodnota větší než `0.5`.
 
-  - calculate_score(self, distance, time, no)
-    - aktualizace self.score (fitness)
+Agent musí mít stejné rozhraní jako ukázkové agenty. Nejlepší výchozí vzor je:
 
-  - passcardata(self, x, y, speed)
-    - hra ji volá automaticky
-    - můžete využít ve skórování nebo ignorovat
+```text
+AI_engines/AIbrain_linear.py
+```
 
-  - getscore(self)
-    - vrací aktuální hodnotu self.score
+Povinné metody:
 
-Doporučení:
+- `__init__(self)`
+- `decide(self, data)`
+- `mutate(self)`
+- `store(self)`
+- `get_parameters(self)`
+- `set_parameters(self, parameters)`
+- `calculate_score(self, distance, time, no)`
+- `passcardata(self, x, y, speed)`
+- `getscore(self)`
 
-Jako nejčistší vzor použijte AI_engines/AIbrain_linear.py.
-Stačí upravit logiku v init_param, decide a mutate podle vašich nápadů a zachovat stejné rozhraní metod.
+Praktické minimum:
 
-------------------------------------------------------------
-4. Jak projekt spustit
-------------------------------------------------------------
+- v `__init__` inicializujte parametry, `self.score` a `self.NAME`
+- v `decide` vraťte 4 čísla pro ovládání auta
+- v `mutate` náhodně upravte parametry
+- ve `store` uložte parametry do `self.parameters`
+- v `set_parameters` obnovte stav ze savu
+- v `calculate_score` nastavujte fitness do `self.score`
 
-1) Nainstalujte Python 3.12 a více
-   Projekt je testován s běžnou verzí Pythonu 3 (3.12+).
+## Hlavní menu
 
-2) (Doporučeno) Vytvořte virtuální prostředí
+Po spuštění `python main.py` se otevře hlavní menu:
 
+- `Hraj` - ruční jízda jedním autem
+- `Mapa` - editor map
+- `Trénuj` - evoluční trénink vybraného agenta
+- `Souboj` - duel dvou agentů
+- `Benchmark` - hromadné porovnání více agentů
+- `Konec` - ukončení aplikace
 
-3) Nainstalujte potřebné balíčky: numpy a pandas, např:
+Ovládání:
 
-   pip install pygame numpy
+- šipky nahoru/dolů - výběr položky
+- Enter - potvrzení
+- Esc - návrat nebo ukončení
 
-4) Spusťte hru:
+Ve spodní části menu jsou dvě textová pole:
 
-   python main.py
+- `agent_name` - název agenta, například `AIbrain_SAFR`
+- mapa - název mapy, například `DefaultRace`, `DefaultReset` nebo název ze `students/maps/`
 
-Po spuštění se objeví hlavní menu.
+Názvy map se zadávají bez cesty. Přípona `.csv` je volitelná.
 
-------------------------------------------------------------
-5. Ovládání menu a herní módy
-------------------------------------------------------------
+## Trénink agenta
 
-V hlavním menu najdete položky:
+Postup:
 
-- Hraj   – ruční řízení jednoho auta klávesnicí (pro pochopení fyziky a mapy)
-- Mapa   – editor map (tvorba/úprava tratí)
-- Trénuj – evoluční trénink vašeho mozku
-- Souboj – duel dvou uložených mozků
-- Konec  – ukončení aplikace
+1. Vložte soubor agenta do `students/agents/`.
+2. Spusťte `python main.py`.
+3. V menu do `agent_name` napište název agenta, například `AIbrain_SAFR`.
+4. Do pole mapy napište například `DefaultRace`.
+5. Vyberte `Trénuj`.
+6. Nastavte parametry tréninku.
+7. Stiskněte `START`.
 
-Ovládání menu:
+Pole v tréninku:
 
-- Šipky nahoru/dolů – výběr položky
-- Enter             – potvrzení výběru
-- Esc               – návrat / ukončení
+- `pocet_aut` - počet aut v jedné generaci
+- `pocet_generaci` - počet generací
+- `cars_to_next` - kolik nejlepších aut se použije pro další generaci; musí být mezi `1` a `pocet_aut`
+- `save_as` - název savu pro nejlepšího agenta
+- `max_time` - maximální délka jedné generace v sekundách
+- `load_from` - save, ze kterého se má pokračovat
 
-V dolní části menu je textové pole pro název mapy.
-Používají se názvy:
+Tlačítka:
 
-- DefaultRace – výchozí závodní trať
-- DefaultReset – prázdná mapa / základní nastavení
-- Nebo název mapy, kterou si sami uložíte v editoru (UserData/<nazev>.csv)
+- `START` - spustí trénink od začátku s vybraným agentem
+- `PAUSE` / `RESUME` - pozastaví nebo znovu spustí aktuální běh bez ztráty generace
+- `NEXT GEN` - ručně ukončí aktuální generaci a vybere nejlepší auta stejně jako při vypršení času
+- `RELOAD SET` - načte z polí nové `pocet_aut`, `cars_to_next`, `save_as`, `load_from` a `max_time`, potom ukončí aktuální generaci stejnou logikou jako `NEXT GEN`
+- `RESET` - zastaví a vymaže aktuální běh tréninku
+- `SAVE` - uloží aktuálně nejlepší mozek podle pole `save_as`
+- `LOAD` - načte save z `load_from` a spustí trénink z načtených parametrů
 
-------------------------------------------------------------
-6. Jak natrénovat vlastní mozek
-------------------------------------------------------------
+`RELOAD SET` nepouští `LOAD` ze souboru. Jen přebere nové hodnoty nastavení pro další generaci a zachová běžnou logiku výběru nejlepších aut a mutací.
 
-1) Ujistěte se, že v main.py používáte svůj mozek:
+Pokud je `cars_to_next` mimo povolený rozsah, program ho upraví na nejbližší bezpečnou hodnotu a vypíše varování do konzole. `SAVE` před spuštěním nebo načtením tréninku jen vypíše hlášku, protože ještě není co ukládat.
 
-   from AI_engines.AIbrain_MujTeam import AIbrain_MujTeam as trainbrain
+Doporučení pro názvy savů:
 
-2) Spusťte hru (python main.py) a v menu zvolte mapu (např. DefaultRace) v textovém poli.
+```text
+AIbrain_<NazevTymu>.npz
+```
 
-3) V menu vyberte položku „Trénuj“. Otevře se tréninková scéna. Vpravo uvidíte textová pole:
+Například:
 
-   - pocet_aut     – kolik aut (jedinců) je v jedné generaci
-   - pocet_generaci – kolik generací se má odsimulovat
-   - cars_to_next  – kolik nejlepších aut se bere jako „elitní“ pro další generaci
-   - save_as       – název souboru, do kterého se uloží NEJLEPŠÍ mozek
-                      (zde nastavte AIbrain_<NazevTymu>.npz, bez cesty, uloží se do UserData/SAVES/)
-   - max_time      – maximální délka jedné generace v sekundách
-   - load_from     – název souboru .npz (z UserData/SAVES/), ze kterého chcete pokračovat v tréninku
+```text
+AIbrain_SAFR.npz
+```
 
-4) Tlačítka ve tréninkové scéně:
+Savy se ukládají do:
 
-   - START
-     - spustí trénink
-     - vytvoří populaci aut s vaším mozkem
-     - spustí evoluční cyklus (běh, skórování, výběr, mutace)
+```text
+students/saves/
+```
 
-   - STOP
-     - zastaví probíhající trénink
+## Načítání savů
 
-   - SAVE AS
-     - uloží aktuálně nejlepší mozek do souboru uvedeného v save_as
+Tlačítko `LOAD` v tréninku hledá save v tomto pořadí:
 
-   - LOAD & PLAY
-     - načte mozek z load_from
-     - nastaví ho jako výchozí
-     - spustí trénink s tímto startovním mozkem (plus mutace)
+```text
+students/saves/<nazev>
+students/saves/<nazev>.npz
+```
 
-5) Doporučený postup pro odevzdání:
+To znamená, že do `load_from` můžete napsat například `FAST` i `FAST.npz`.
 
-   - Trénujte, dokud nejste s výsledkem spokojeni.
-   - nezapomente ze můzete vytvářet vlastní mapy. Nevíte na jakých mapách hru pustím!
-   - Nastavte save_as na:
+Pokud save neexistuje, nejde otevřít nebo nepasuje k aktuálně vybranému agentovi, program nespadne. Vypíše chybu do konzole a trénink nespustí.
 
-     AIbrain_<NazevTymu>.npz
+Důležité: save musí odpovídat architektuře agenta. Například parametry pro `AIbrain_2layer` nemusí jít načíst do `AIbrain_linear`.
 
-   - Stiskněte SAVE AS.
-   - Zkontrolujte, že se soubor objevil v UserData/SAVES/.
+## Monitoring tréninku
 
-------------------------------------------------------------
-7. Jak probíhá souboj mozků (Duel)
-------------------------------------------------------------
+Vpravo v tréninkové scéně je jednoduchý živý monitor:
 
-Souboje mozků mezi týmy probíhají v záložce „Souboj“:
+- `Agent` - aktuálně vybraný agent
+- `Gen` - aktuální generace a čas generace
+- `Alive` - kolik aut ještě jede
+- `Crash` - kolik aut skončilo
+- `Best` - nejlepší skóre v aktuální generaci
+- `All` - nejlepší skóre za celý běh
+- `Avg` - průměrné skóre generace
+- `Med` - medián skóre generace
+- `Stag` - kolik generací se nezlepšilo nejlepší skóre
+- `Save` - cílový název savu
 
-- Vpravo jsou textová pole:
-  - map_name      – název mapy (např. DefaultRace)
-  - engine1_class – název třídy mozku 1 (např. AIbrain_TeamA)
-  - engine1_save  – název .npz souboru z UserData/SAVES/ pro mozek 1 (např. AIbrain_TeamA.npz)
-  - engine2_class – název třídy mozku 2 (např. AIbrain_TeamB)
-  - engine2_save  – název .npz souboru z UserData/SAVES/ pro mozek 2 (např. AIbrain_TeamB.npz)
+Monitor je orientační. Když rychle roste `Crash` a `Best` se nezlepšuje, agent nejspíš potřebuje lepší rozhodování, mutaci nebo skórování.
 
-- Tlačítka:
-  - LOAD MAP   – načte mapu
-  - START DUEL – spustí souboj dvou aut s danými mozky
+## Logy a grafy tréninku
 
-Mozky se dynamicky importují podle jména třídy a souboru .npz.
-To je důvod, proč je důležité, aby:
+Každý nový `START` nebo úspěšný `LOAD` v tréninku založí vlastní CSV log. Po každé dokončené generaci se přidá jeden řádek s metrikami:
 
-- soubor s mozkem měl tvar AIbrain_<NazevTymu>.py
-- třída uvnitř měla přesně stejné jméno
-- soubor s parametry měl sjednocené jméno AIbrain_<NazevTymu>.npz a ležel v UserData/SAVES/
+- nejlepší skóre generace
+- průměrné skóre generace
+- medián skóre generace
+- počet naražených aut
+- počet aktivních aut
+- nejlepší skóre celého běhu
+- stagnace, čas generace, agent, mapa a název savu
 
-------------------------------------------------------------
-8. Map editor – tvorba vlastní trati
-------------------------------------------------------------
+CSV logy se ukládají do:
 
-V menu vyberte položku „Mapa“:
+```text
+students/results/training_logs/
+```
 
-- Vpravo je textové pole pro název mapy (bez přípony).
-- Tlačítka:
-  - Save map – uloží mapu jako UserData/<nazev>.csv
-  - Load     – načte mapu UserData/<nazev>.csv
-  - RESET    – načte výchozí šablonu mapy z DefaultSettings/DefaultReset.csv
+Pokud je dostupný balíček `matplotlib`, trénink navíc průběžně ukládá PNG graf do:
 
-Do mapy kreslíte klikáním do levé části okna.
-Opakované klikání na stejný tile cykluje mezi typy dlaždic.
-Startovní tile pro závody je road_dirt42.
+```text
+students/results/training_plots/
+```
 
-Mapy si můžete vytvořit pro ladění vlastního mozku.
-Pro oficiální vyhodnocení se může použít konkrétní vybraná trať (viz zadání od vyučujícího).
+Výchozí interval grafu je každých 5 dokončených generací. Nastavení je v `constants.py`:
 
-------------------------------------------------------------
-9. Poznámky k prostředí a kódu
-------------------------------------------------------------
+```python
+TRAINING_PLOT_EVERY = 5
+```
 
-- Velikost okna a dlaždic se nastavuje v souboru constants.py:
-  - parametr HEIGHT určuje výšku okna
-  - ostatní rozměry (WIDTH, TILESIZE, velikosti menu atd.) se dopočítávají automaticky
+Hodnota `10` znamená ukládání každých 10 generací. Hodnota `0` PNG graf vypne. Pokud `matplotlib` není nainstalovaný nebo graf nejde uložit, program jen vypíše hlášku do konzole a trénink pokračuje dál. CSV logování na `matplotlib` nezávisí.
 
-- Audio na Linuxu:
-  Na Linuxu může Pygame mixer způsobovat významné lagy (0–15 s, někdy i 1–2 min).
-  Proto je v main.py použito:
+## Mapy
 
-  os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
+Výchozí mapy jsou v:
 
-  To vypne zvuk a používá „dummy“ driver (bez zvukového výstupu).
-  Na Windows a macOS není potřeba nic měnit (nic není treba nikde měnit ;) )
+```text
+DefaultSettings/
+```
 
-------------------------------------------------------------
-10. Shrnutí
-------------------------------------------------------------
+Studentské mapy jsou v:
 
-1) Vytvořte soubor AI_engines/AIbrain_<NazevTymu>.py a v něm třídu AIbrain_<NazevTymu>
-   se stejným rozhraním jako AIbrain_linear.
+```text
+students/maps/
+```
 
-2) V main.py v sekci „### Students part“ nastavte import svého mozku jako trainbrain.
+Použitelné názvy v menu:
 
-3) Spusťte hru, v módu „Trénuj“ natrénujte mozek a uložte jej jako AIbrain_<NazevTymu>.npz do UserData/SAVES/.
+- `DefaultRace` - výchozí závodní trať
+- `DefaultReset` - základní mapa pro editor
+- vlastní název mapy ze `students/maps/`, například `moje_mapa`
 
-4) Na Git odevzdejte:
-   - AI_engines/AIbrain_<NazevTymu>.py
-   - UserData/SAVES/AIbrain_<NazevTymu>.npz
+Editor map:
 
-5) zbytek (souboje mozků v módu „Souboj“) se postaráme my.
+- v menu vyberte `Mapa`
+- do textového pole napište název mapy bez `.csv`
+- `Save map` uloží mapu do `students/maps/<nazev>.csv`
+- `Load` načte mapu ze `students/maps/<nazev>.csv`
+- `RESET` načte `DefaultSettings/DefaultReset.csv`
+
+Startovní tile je:
+
+```text
+road_dirt42
+```
+
+Klikáním do levé části mapy měníte dlaždice. Opakované kliknutí na stejnou pozici cykluje dostupné typy dlaždic.
+
+## Souboj dvou agentů
+
+V menu vyberte `Souboj`.
+
+Pole vpravo:
+
+- `map_name` - název mapy
+- `engine1_class` - třída prvního agenta
+- `engine1_save` - save prvního agenta
+- `engine2_class` - třída druhého agenta
+- `engine2_save` - save druhého agenta
+
+Tlačítka:
+
+- `LOAD MAP` - načte mapu
+- `START DUEL` - spustí duel
+
+Agent se hledá podle třídy/souboru. Save se hledá v `students/saves/`.
+
+## Benchmark více agentů
+
+Benchmark slouží k porovnání více agentů najednou. V menu vyberte `Benchmark`.
+
+Výchozí soubor se seznamem agentů:
+
+```text
+students/benchmark_agents.yaml
+```
+
+Formát:
+
+```yaml
+agents:
+  - agent: AIbrain_TeamA
+    save: AIbrain_TeamA.npz
+  - agent: AIbrain_TeamB
+    save: AIbrain_TeamB.npz
+```
+
+Pole v benchmark scéně:
+
+- `map_name` - mapa pro benchmark
+- `finish_row` - řádek cílové dlaždice
+- `finish_col` - sloupec cílové dlaždice
+- `time_limit_s` - časový limit
+- `output_csv` - název výstupního CSV
+- `agents_file` - YAML nebo TXT soubor se seznamem agentů
+- `engines_fallback` - ruční seznam agentů, pokud soubor není dostupný
+
+Výchozí `agents_file` je `benchmark_agents.yaml`, což se překládá na:
+
+```text
+students/benchmark_agents.yaml
+```
+
+Výstupy benchmarku se ukládají do:
+
+```text
+students/results/
+```
+
+Během běžícího benchmarku se vlevo na mapě zobrazuje bílý seznam `#pořadí název_mozku`. Pořadí odpovídá YAML/TXT seznamu. Stejné číslo se kreslí výrazně žlutě s tmavým obrysem přímo přes auto a ukládá se i do výsledkového CSV ve sloupci `benchmark_order`.
+
+Výsledný `rank` je závodní pořadí: auta, která dojela do cíle, jsou řazená podle času. Auta, která nedojela, jsou až za nimi podle stavu `TIMEOUT`, `CRASH`, `OUT`. Najetá vzdálenost `distance_tiles` zůstává jen informační metrika v CSV a ve výsledkovém výpisu.
+
+Ruční fallback formát:
+
+```text
+AIbrain_TeamA:AIbrain_TeamA.npz; AIbrain_TeamB:AIbrain_TeamB.npz
+```
+
+Podporované oddělovače položek jsou `;` nebo `|`. Mezi agentem a savem lze použít `:`, `,` nebo mezeru.
+
+## Doporučený studentský postup
+
+1. Zkopírujte si myšlenkově vzor z `AI_engines/AIbrain_linear.py`.
+2. Vytvořte `students/agents/AIbrain_<NazevTymu>.py`.
+3. Zachovejte povinné metody a stejný název souboru i třídy.
+4. V menu vyberte svého agenta.
+5. Trénujte na `DefaultRace` a na vlastních mapách.
+6. Sledujte monitor tréninku.
+7. Uložte nejlepší save do `students/saves/AIbrain_<NazevTymu>.npz`.
+8. Ověřte, že `LOAD` dokáže váš save načíst.
+9. Vyzkoušejte benchmark nebo duel.
+10. Odevzdejte `.py` a `.npz`.
+
+## Časté problémy
+
+`Agent nebyl nalezen`
+
+- zkontrolujte, že soubor je ve `students/agents/`
+- zkontrolujte, že název souboru a třídy je stejný
+- zkontrolujte, že třída implementuje povinné metody
+
+`Save nebyl nalezen`
+
+- zkontrolujte `students/saves/`
+- do `load_from` můžete zadat název s `.npz` i bez `.npz`
+
+`Save nejde použít pro aktuálního agenta`
+
+- nejspíš načítáte parametry jiné architektury
+- vyberte správný agent v menu nebo správný `.npz` soubor
+
+`Mapa neexistuje`
+
+- pro výchozí mapy použijte `DefaultRace` nebo `DefaultReset`
+- pro vlastní mapy zkontrolujte `students/maps/<nazev>.csv`
+
+`Benchmark nenašel agenty`
+
+- zkontrolujte `students/benchmark_agents.yaml`
+- zkontrolujte odsazení YAML
+- zkontrolujte, že agent existuje a save je ve `students/saves/`
+
+## Poznámka k zvuku
+
+V `main.py` je nastavený dummy audio driver:
+
+```python
+os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
+```
+
+Je to kvůli stabilitě Pygame na některých systémech. Pro práci studentů není potřeba nic měnit.

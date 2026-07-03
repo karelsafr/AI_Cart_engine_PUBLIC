@@ -1,4 +1,4 @@
-import pygame, os, importlib
+import pygame, os
 import numpy as np
 from pathlib import Path
 
@@ -53,7 +53,7 @@ class DuelScene:
         )
         self.input_map.set_default("DefaultRace")
 
-        # engine 1 - třída (AI_engines.<jméno>, třída se jmenuje stejně)
+        # engine 1 - třída agenta, třída se jmenuje stejně jako soubor
         self.input_engine1 = TextInput(
             pygame.Rect(
                 WIDTH - MAP_MENUSIZE + MAP_BUTTON_IDENT,
@@ -160,13 +160,7 @@ class DuelScene:
     def load_map(self):
         """Načte mapu podle textinputu a připraví bloky a kontrolní čáry."""
         name = self.input_map.get_text("DefaultRace")
-
-        if name in ("DefaultRace", "DefaultReset"):
-            prefix = "DefaultSettings/"
-        else:
-            prefix = "UserData/"
-
-        map_file = prefix + name + ".csv"
+        map_file = self.scene_manager.resolve_map_path(name)
 
         if not os.path.exists(map_file):
             print(f"ERROR: mapa {map_file} neexistuje")
@@ -229,15 +223,17 @@ class DuelScene:
     def _load_brain(self, engine_class_name: str, save_file_name: str):
         """Dynamicky načte třídu brainu a případně nahraje parametry z .npz."""
         try:
-            module = importlib.import_module(f"AI_engines.{engine_class_name}")
-            BrainClass = getattr(module, engine_class_name)
+            BrainClass = self.scene_manager.get_agent_class(engine_class_name)
+            if BrainClass is None:
+                raise ImportError(f"agent '{engine_class_name}' neni v registry")
         except Exception as e:
-            print(f"ERROR: nelze importovat AI_engines.{engine_class_name}: {e}")
+            print(f"ERROR: nelze nacist agenta {engine_class_name}: {e}")
             return None
 
         brain = BrainClass()
 
         params_path = Path(PATH_SAVES) / save_file_name
+
         if params_path.is_file():
             try:
                 params = np.load(params_path)
