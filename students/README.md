@@ -27,6 +27,12 @@ Jako vzor použijte:
 AI_engines/AIbrain_linear.py
 ```
 
+Přesný kontrakt rozhraní agenta je v:
+
+```text
+../AGENT_INTERFACE.md
+```
+
 Agent musí implementovat metody:
 
 - `decide`

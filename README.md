@@ -102,6 +102,12 @@ Agent musí mít stejné rozhraní jako ukázkové agenty. Nejlepší výchozí 
 AI_engines/AIbrain_linear.py
 ```
 
+Přesný kontrakt mezi enginem a agentem je v:
+
+```text
+AGENT_INTERFACE.md
+```
+
 Povinné metody:
 
 - `__init__(self)`
