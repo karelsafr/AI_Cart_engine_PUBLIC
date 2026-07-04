@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # Barvy:
 BLACK = (0, 0, 0)
 GREY = (192, 192, 192)

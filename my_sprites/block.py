@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import pygame
-from constants import WHITE, TILESIZE, tilesides
+from constants import WHITE, TILESIZE
+from core.protocols import TileGrid
 
 class BlockV(pygame.sprite.Sprite):
-    def __init__(self, x, y, width=2, height=TILESIZE, alpha=51):
+    def __init__(self, x: int, y: int, width: int = 2, height: int = TILESIZE, alpha: int = 51):
         super().__init__()
         self.image = pygame.Surface((width, height), pygame.SRCALPHA)
         r, g, b = WHITE
@@ -11,7 +14,7 @@ class BlockV(pygame.sprite.Sprite):
 
 
 class BlockH(pygame.sprite.Sprite):
-    def __init__(self, x, y, width=TILESIZE, height=2, alpha=51):
+    def __init__(self, x: int, y: int, width: int = TILESIZE, height: int = 2, alpha: int = 51):
         super().__init__()
         self.image = pygame.Surface((width, height), pygame.SRCALPHA)
         r, g, b = WHITE
@@ -20,7 +23,7 @@ class BlockH(pygame.sprite.Sprite):
 
 
 class Blocks(pygame.sprite.Sprite):
-    def __init__(self, tile_size, alpha, tilegrid, tilesides):
+    def __init__(self, tile_size: int, alpha: int, tilegrid: TileGrid, tilesides: dict[str, list[str]]):
         super().__init__()
         self.tile_size = tile_size
         self.alpha = alpha
@@ -36,7 +39,7 @@ class Blocks(pygame.sprite.Sprite):
 
         self.mask: pygame.mask.Mask | None = None
 
-    def constructBG(self):
+    def constructBG(self) -> None:
         # vyčistit
         self.image.fill((0, 0, 0, 0))
         self.sprites.empty()
@@ -68,7 +71,7 @@ class Blocks(pygame.sprite.Sprite):
         # vytvoření masky pro raycasting
         self.mask = pygame.mask.from_surface(self.image, 1)
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.Surface) -> None:
         self.sprites.draw(screen)
         # případně by stačilo:
         # screen.blit(self.image, self.rect)

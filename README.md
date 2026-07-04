@@ -415,6 +415,25 @@ Podporované oddělovače položek jsou `;` nebo `|`. Mezi agentem a savem lze p
 - zkontrolujte odsazení YAML
 - zkontrolujte, že agent existuje a save je ve `students/saves/`
 
+## Typování kódu
+
+Engine používá postupné, měkké typování. Sdílené protokoly jsou v:
+
+```text
+core/protocols.py
+```
+
+Nejdůležitější je `AgentProtocol`, který popisuje metody, které musí studentský agent nabídnout. Typování slouží pro lepší orientaci, editor a bezpečnější úpravy enginu; nemění běh programu.
+
+Python soubory v projektu používají `from __future__ import annotations`, takže lze anotace doplňovat postupně a bez vlivu na chování programu.
+
+Konfigurace pro `pyright` a `mypy` je v `pyproject.toml`. Studentské agenty nejsou v základní kontrole striktně vynucované, aby zůstaly flexibilní pro výuku. Pokud máte nástroj nainstalovaný, lze kontrolu spustit například:
+
+```bash
+pyright
+mypy
+```
+
 ## Poznámka k zvuku
 
 V `main.py` je nastavený dummy audio driver:

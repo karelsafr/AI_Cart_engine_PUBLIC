@@ -17,7 +17,7 @@ class CsvTileMap:
         tile_h: Optional[int] = None,
         base_tile: Optional[str] = EMPTY_TILE,       # Jméno dlaždice pro „výplň“
         empty_symbol: str = ".",               #  Jak značíme „prázdno“ v CSV
-        scale_mode: str = "smooth"
+        scale_mode: str = "smooth",
     ):
         self.atlas = atlas
         self.csv_path = Path(csv_path)
@@ -80,7 +80,7 @@ class CsvTileMap:
         else:
             self._base_tile_cached = None
 
-    def prerender(self, *, fill_color=(0, 0, 0, 0)) -> None:
+    def prerender(self, *, fill_color: tuple[int, int, int, int] = (0, 0, 0, 0)) -> None:
         if not self.grid:
             self.load_csv()
 
@@ -122,7 +122,7 @@ class CsvTileMap:
             bg = bg.convert()
         self.surface = bg
 
-    def draw(self, screen: pygame.Surface, dest=(0, 0)) -> None:
+    def draw(self, screen: pygame.Surface, dest: tuple[int, int] = (0, 0)) -> None:
         if self.surface is None:
             self.prerender()
         screen.blit(self.surface, dest)

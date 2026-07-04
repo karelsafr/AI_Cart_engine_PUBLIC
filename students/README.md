@@ -120,3 +120,7 @@ students/saves/AIbrain_<NazevTymu>.npz
 ```
 
 Neměňte soubory enginu mimo `students/`, pokud k tomu není výslovné zadání.
+
+## Poznámka k typování
+
+Engine má typový protokol `AgentProtocol`, který popisuje povinné metody agenta. Pro vás je pořád nejdůležitější zachovat stejné metody jako v `AI_engines/AIbrain_linear.py`; typování jen pomáhá editoru a kontrole enginu. Studentské agenty mohou anotace používat, ale nejsou kvůli výuce striktně vynucené.

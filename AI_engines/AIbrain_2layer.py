@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 from numpy import random as np_random
 import numpy as np
 import copy
+from typing import Any, Sequence
 
 N_SENSORS = 9
 MAX_SPEED = 500.0
@@ -18,7 +21,7 @@ def _sigmoid(z: np.ndarray) -> np.ndarray:
 
 
 class AIbrain_2layer:
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.score = 0.0
 
@@ -30,7 +33,7 @@ class AIbrain_2layer:
 
         self.init_param()
 
-    def init_param(self):
+    def init_param(self) -> None:
         s1 = 1.0 / np.sqrt(N_INPUTS)
         s2 = 1.0 / np.sqrt(N_HIDDEN)
 
@@ -43,7 +46,7 @@ class AIbrain_2layer:
         self.NAME = "SAFR_2layer"
         self.store()
 
-    def decide(self, data):
+    def decide(self, data: Sequence[float]) -> np.ndarray:
         rays = np.asarray(data, dtype=float).ravel()
 
         if rays.size < N_SENSORS:
@@ -62,7 +65,7 @@ class AIbrain_2layer:
         out = _sigmoid(self.W2.dot(h) + self.b2)
         return out
 
-    def mutate(self):
+    def mutate(self) -> None:
         s = float(self.mutation_sigma)
 
         self.W1 = self.W1 + np_random.randn(*self.W1.shape) * s
@@ -77,7 +80,7 @@ class AIbrain_2layer:
 
         self.store()
 
-    def store(self):
+    def store(self) -> None:
         self.parameters = copy.deepcopy({
             "W1": np.array(self.W1, dtype=float),
             "b1": np.array(self.b1, dtype=float),
@@ -87,10 +90,10 @@ class AIbrain_2layer:
             #"mutation_sigma": np.array([float(self.mutation_sigma)], dtype=float),
         })
 
-    def get_parameters(self):
+    def get_parameters(self) -> dict[str, Any]:
         return copy.deepcopy(self.parameters)
 
-    def set_parameters(self, parameters):
+    def set_parameters(self, parameters: Any) -> None:
         if isinstance(parameters, np.lib.npyio.NpzFile):
             params = {k: parameters[k] for k in parameters.files}
         else:
@@ -109,13 +112,13 @@ class AIbrain_2layer:
         else:
             self.mutation_sigma = 0.01
 
-    def calculate_score(self, distance, time, no):
+    def calculate_score(self, distance: float, time: float, no: int) -> None:
         self.score = float(distance)
 
-    def passcardata(self, x, y, speed):
+    def passcardata(self, x: float, y: float, speed: float) -> None:
         self.x = float(x)
         self.y = float(y)
         self.speed = float(speed)
 
-    def getscore(self):
+    def getscore(self) -> float:
         return self.score

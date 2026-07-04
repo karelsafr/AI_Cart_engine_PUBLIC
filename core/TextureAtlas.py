@@ -6,7 +6,15 @@ from typing import Dict, Iterable, Optional
 import pygame
 
 class TextureAtlas:
-    def __init__(self, image_path, xml_path, *, add_alias_without_ext=True, scale_to: tuple[int,int] | None = None, scale_mode: str = "smooth"):
+    def __init__(
+        self,
+        image_path: str | Path,
+        xml_path: str | Path,
+        *,
+        add_alias_without_ext: bool = True,
+        scale_to: tuple[int, int] | None = None,
+        scale_mode: str = "smooth",
+    ):
         self.image_path = Path(image_path)
         self.xml_path = Path(xml_path)
         self.add_alias_without_ext = add_alias_without_ext

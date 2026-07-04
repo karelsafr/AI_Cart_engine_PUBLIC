@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pygame, sys, os, matplotlib
 import numpy as np
 from scenes.MenuScene import MenuScene

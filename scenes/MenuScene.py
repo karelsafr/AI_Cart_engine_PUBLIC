@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pygame, sys
 from constants import BLACK, WHITE, BLUE, WIDTH, MENU_SCENE_START_Y_POS, MENU_FONT_SIZE, MENU_MENU_IDENT, HEIGHT
 from UI.TextInput import TextInput
@@ -33,7 +35,7 @@ class MenuScene:
         )
         self.agent_input.set_default(default_agent)
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.Surface) -> None:
         screen.fill(BLACK)
 
         y = MENU_SCENE_START_Y_POS
@@ -47,11 +49,11 @@ class MenuScene:
         self.agent_input.draw(screen)
         self.textinput.draw(screen)
 
-    def update(self, dt, keys):
+    def update(self, dt: float, keys) -> None:
         self.agent_input.update(dt)
         self.textinput.update(dt)
 
-    def event(self, event):
+    def event(self, event: pygame.event.Event) -> None:
         # myš
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
@@ -71,7 +73,7 @@ class MenuScene:
         self.agent_input.handle_event(event)
         self.textinput.handle_event(event)
 
-    def check_mouse_click(self, x, y):
+    def check_mouse_click(self, x: int, y: int) -> None:
         y_pos = MENU_SCENE_START_Y_POS
         for i, text in enumerate(self.items):
             surf = self.font.render(text, True, WHITE)
@@ -80,7 +82,7 @@ class MenuScene:
                 self.activate(i)
             y_pos += MENU_MENU_IDENT
 
-    def activate(self, index):
+    def activate(self, index: int) -> None:
         chosen = self.items[index]
         if chosen == "Konec":
             self.active = False
@@ -110,8 +112,8 @@ class MenuScene:
         if chosen == "Benchmark":
             self.sceene_manager.set_benchmark()
 
-    def is_active(self):
+    def is_active(self) -> bool:
         return self.active
 
-    def reset(self):
+    def reset(self) -> None:
         pass

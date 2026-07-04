@@ -10,6 +10,7 @@ AI_Cart_engine_V2/
 ├── constants.py                    # konstanty okna, cest, dlaždic, rychlostí a raycastů
 ├── README.md                       # hlavní návod pro studenty
 ├── PROJECT_STRUCTURE.md            # tato mapa projektu
+├── pyproject.toml                  # konfigurace typovacích nástrojů
 ├── AI_engines/                     # vestavěné vzory agentů
 │   ├── AIbrain_linear.py           # výchozí agent
 │   ├── AIbrain_TeamName.py         # jednoduchá šablona
@@ -172,6 +173,21 @@ AI auto:
 - `UI/TextInput.py` - textové pole
 - `UI/MakeGrid.py` - pomocná mřížka pro editor map
 
+## Trénink
+
+Trénink řídí `scenes/TrainingScene.py` a evoluční logiku drží `core/car_manager.py`.
+
+Hlavní ovládání:
+
+- `START` - založí nový trénink podle aktuálních polí
+- `PAUSE` / `RESUME` - pozastaví nebo obnoví běžící generaci
+- `NEXT GEN` - ukončí aktuální generaci stejnou logikou jako vypršení času
+- `RELOAD SET` - načte nové `pocet_aut`, `cars_to_next`, `save_as`, `load_from` a `max_time`, potom přejde do další generace běžnou evoluční logikou
+- `RESET` - zastaví a vymaže aktuální běh
+- `SAVE` / `LOAD` - ukládání a načítání parametrů ze `students/saves/`
+
+`RELOAD SET` nenačítá save ze souboru; jen převezme nové nastavení pro další generaci. Logika výběru nejlepších aut a mutací zůstává stejná jako u normálního konce generace.
+
 ## Benchmark
 
 Výchozí seznam agentů:
@@ -232,3 +248,11 @@ students/results/
 - `README.md` - postupy pro studenty
 - `students/README.md` - krátký návod přímo ve studentském workspace
 - `PROJECT_STRUCTURE.md` - technická mapa projektu
+
+## Typování
+
+- `core/protocols.py` - sdílené typové protokoly a aliasy
+- `AgentProtocol` - rozhraní, které engine očekává od agentů
+- `pyproject.toml` - mírná konfigurace pro `pyright` a `mypy`
+
+Všechny Python soubory používají `from __future__ import annotations`, aby šly typy doplňovat postupně bez změny runtime chování. Typování je zavedené jako vývojová pomůcka a nemá měnit studentské API.

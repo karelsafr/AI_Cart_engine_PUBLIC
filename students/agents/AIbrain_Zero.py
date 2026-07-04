@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from numpy import random as np_random
 import random
 import numpy as np

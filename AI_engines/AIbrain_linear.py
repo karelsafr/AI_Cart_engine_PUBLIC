@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from numpy import random as np_random
 import random
 import numpy as np
 import copy
 import string
+from typing import Any, Sequence
 
 # počet vstupů – ideálně = len(RAYCAST_ANGLES)
 N_INPUTS = 9
@@ -10,7 +13,7 @@ N_ACTIONS = 4  # [up, down, left, right]
 
 # vždy pojmenováváme jako "AIbrain_jemnoteamu"
 class AIbrain_linear:
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.score = 0
         self.chars = string.ascii_letters + string.digits  # pro potreby náhdných znaků
@@ -21,7 +24,7 @@ class AIbrain_linear:
 
         self.init_param()
 
-    def init_param(self):
+    def init_param(self) -> None:
         # zde si vytvoríme promnenne co potrebujeme pro nas model
         # parametry modely vzdy inicializovat v této metode
         self.W = (np_random.rand(N_ACTIONS, N_INPUTS) - 0.5) / N_INPUTS
@@ -32,7 +35,7 @@ class AIbrain_linear:
         # vždy uložit!
         self.store()
 
-    def decide(self, data):
+    def decide(self, data: Sequence[float]) -> np.ndarray:
         self.decider += 1
 
         x = np.asarray(data, dtype=float).ravel()
@@ -49,7 +52,7 @@ class AIbrain_linear:
         # vracíme přímo z; AI_car pak dělá threshold > 0.5
         return z
 
-    def mutate(self):
+    def mutate(self) -> None:
         """
         Mutace: všechny váhy i biasy se malé náhodně posunou.
         Tím se skutečně mění lineární kombinace pro každou akci.
@@ -65,7 +68,7 @@ class AIbrain_linear:
 
         self.store()
 
-    def store(self):
+    def store(self) -> None:
         # vše, co se má ukládat do .npz
         self.parameters = copy.deepcopy({
             "W": self.W,
@@ -73,7 +76,7 @@ class AIbrain_linear:
             "NAME": self.NAME,
         })
 
-    def set_parameters(self, parameters):
+    def set_parameters(self, parameters: Any) -> None:
         if isinstance(parameters, np.lib.npyio.NpzFile):
             params_dict = {key: parameters[key] for key in parameters.files}
         else:
@@ -87,17 +90,17 @@ class AIbrain_linear:
         self.NAME = str(self.parameters["NAME"])
 
 
-    def calculate_score(self, distance, time, no):
+    def calculate_score(self, distance: float, time: float, no: int) -> None:
         self.score = distance
 
     ##################### do těchto funkcí není potřeba zasahovat:
-    def passcardata(self, x, y, speed):
+    def passcardata(self, x: float, y: float, speed: float) -> None:
         self.x = x
         self.y = y
         self.speed = speed
 
-    def getscore(self):
+    def getscore(self) -> float:
         return self.score
 
-    def get_parameters(self):
+    def get_parameters(self) -> dict[str, Any]:
         return copy.deepcopy(self.parameters)

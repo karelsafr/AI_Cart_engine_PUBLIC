@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import csv
 import re
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 
 class TrainingLogger:
@@ -30,15 +33,15 @@ class TrainingLogger:
 
     def __init__(
         self,
-        log_dir,
-        plot_dir,
+        log_dir: str | Path,
+        plot_dir: str | Path,
         *,
-        plot_every=5,
-        agent_name="",
-        map_name="",
-        save_as="",
-        load_from="",
-        mode="start",
+        plot_every: int = 5,
+        agent_name: str = "",
+        map_name: str = "",
+        save_as: str = "",
+        load_from: str = "",
+        mode: str = "start",
     ):
         self.log_dir = Path(log_dir)
         self.plot_dir = Path(plot_dir)
@@ -59,7 +62,7 @@ class TrainingLogger:
         self.run_id = "_".join(part for part in run_parts if part)
         self.csv_path = self.log_dir / f"{self.run_id}.csv"
         self.plot_path = self.plot_dir / f"{self.run_id}.png"
-        self.rows = []
+        self.rows: list[dict[str, Any]] = []
         self.csv_enabled = True
         self._matplotlib_warning_printed = False
         self._plot_error_printed = False
@@ -72,27 +75,27 @@ class TrainingLogger:
             print("Training PNG graf je vypnuty")
 
     @staticmethod
-    def _safe_name(text, default):
+    def _safe_name(text: str, default: str) -> str:
         text = str(text or "").strip() or default
         text = re.sub(r"[^A-Za-z0-9_.-]+", "_", text)
         text = text.strip("._-")
         return (text or default)[:80]
 
     @staticmethod
-    def _as_float(value, default=0.0):
+    def _as_float(value: Any, default: float = 0.0) -> float:
         try:
             return float(value)
         except (TypeError, ValueError):
             return default
 
     @staticmethod
-    def _as_int(value, default=0):
+    def _as_int(value: Any, default: int = 0) -> int:
         try:
             return int(value)
         except (TypeError, ValueError):
             return default
 
-    def _prepare_csv(self):
+    def _prepare_csv(self) -> None:
         try:
             self.log_dir.mkdir(parents=True, exist_ok=True)
             with self.csv_path.open("w", newline="", encoding="utf-8") as f:
@@ -102,7 +105,7 @@ class TrainingLogger:
             self.csv_enabled = False
             print(f"VAROVANI: CSV log treninku se nepodarilo pripravit: {exc}")
 
-    def log_generation(self, stats):
+    def log_generation(self, stats: dict[str, Any]) -> None:
         row = self._make_row(stats)
         self.rows.append(row)
         self._append_csv(row)
@@ -110,7 +113,7 @@ class TrainingLogger:
         if self.plot_every > 0 and len(self.rows) % self.plot_every == 0:
             self.save_plot()
 
-    def save_plot(self):
+    def save_plot(self) -> bool:
         if not self.rows or self.plot_every <= 0:
             return False
         if self._matplotlib_warning_printed:
@@ -165,7 +168,7 @@ class TrainingLogger:
                 self._plot_error_printed = True
             return False
 
-    def _append_csv(self, row):
+    def _append_csv(self, row: dict[str, Any]) -> None:
         if not self.csv_enabled:
             return
 
@@ -177,7 +180,7 @@ class TrainingLogger:
             self.csv_enabled = False
             print(f"VAROVANI: CSV log treninku se nepodarilo zapsat: {exc}")
 
-    def _make_row(self, stats):
+    def _make_row(self, stats: dict[str, Any]) -> dict[str, Any]:
         return {
             "run_id": self.run_id,
             "timestamp": datetime.now().isoformat(timespec="seconds"),

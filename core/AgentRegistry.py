@@ -3,9 +3,13 @@ from __future__ import annotations
 import importlib
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Type
+from typing import TypeAlias
 
 from constants import PATH_STUDENT_AGENTS
+from core.protocols import AgentProtocol
+
+
+AgentClass: TypeAlias = type[AgentProtocol]
 
 
 REQUIRED_AGENT_METHODS = (
@@ -35,9 +39,9 @@ class AgentRegistry:
             sources = [
                 ("students.agents", PATH_STUDENT_AGENTS),
                 ("AI_engines", "AI_engines"),
-            ]
+        ]
         self.sources = [(package_name, Path(directory)) for package_name, directory in sources]
-        self.agents: dict[str, Type] = {}
+        self.agents: dict[str, AgentClass] = {}
         self.infos: dict[str, AgentInfo] = {}
         self.errors: dict[str, str] = {}
 
@@ -91,7 +95,7 @@ class AgentRegistry:
     def names(self) -> list[str]:
         return sorted(self.agents.keys())
 
-    def get(self, name: str | None):
+    def get(self, name: str | None) -> AgentClass | None:
         if not name:
             return self.default_agent()
         return self.agents.get(name.strip())
@@ -106,7 +110,7 @@ class AgentRegistry:
             return "AIbrain_2layer"
         return names[0]
 
-    def default_agent(self):
+    def default_agent(self) -> AgentClass | None:
         name = self.default_name()
         if name is None:
             return None

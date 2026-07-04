@@ -1,14 +1,17 @@
+from __future__ import annotations
+
 import pygame, sys, os
+from pathlib import Path
 
 from constants import BLACK, WHITE, TILESIZE, SPEED, MAX_SPEED, tilesides
 from my_sprites.car import car
 from my_sprites.block import Blocks
 
 class load_tmap_raw:
-    def __init__(self, scenemanager, filename):
+    def __init__(self, scenemanager, filename: str | Path):
         self.scenemanager = scenemanager
         self.filename = filename
-    def action(self):
+    def action(self) -> None:
         if os.path.exists(self.filename):
             self.scenemanager.load_tmap(self.filename)
         else:
@@ -27,18 +30,18 @@ class PlayGame:
         self.Blocks = Blocks(TILESIZE, 50, self.scene_manager.cur_tmap.grid, tilesides)
         self.Blocks.constructBG()
 
-    def restart(self):
+    def restart(self) -> None:
         self.cars = pygame.sprite.Group()
         self.cars.add(car(TILESIZE * 4+int(TILESIZE/2), TILESIZE * 8+int(TILESIZE/2), 10, 20))
         self.Blocks = Blocks(TILESIZE, 50, self.scene_manager.cur_tmap.grid, tilesides)
         self.Blocks.constructBG()
 
-    def get_map_name(self,mapname):
+    def get_map_name(self,mapname: str | Path) -> None:
         self.map_name = mapname
         self.loader = load_tmap_raw(self.scene_manager, self.map_name)
         self.loader.action()
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.Surface) -> None:
         screen.fill(BLACK)
 
         self.scene_manager.cur_tmap.draw(screen)
@@ -52,10 +55,10 @@ class PlayGame:
         self.cars.draw(screen)
         self.Blocks.draw(screen)# vykreslení bloků!
 
-    def update(self, dt, keys):
+    def update(self, dt: float, keys) -> None:
         self.cars.update(dt, keys, self.Blocks)
 
-    def event(self, event):
+    def event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
             self.check_mouse_click(x, y)
@@ -68,11 +71,11 @@ class PlayGame:
 
         # nejde o updaty pro akce ve hre, jen jednorázové zálezitosti zde!!
 
-    def check_mouse_click(self, x, y):
+    def check_mouse_click(self, x: int, y: int) -> None:
         pass
 
-    def is_active(self):
+    def is_active(self) -> bool:
         return self.active
 
-    def reset(self):
+    def reset(self) -> None:
         pass

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import csv
 from pathlib import Path
@@ -16,21 +18,22 @@ from my_sprites.AI_car import AI_car
 from my_sprites.block import Blocks
 from UI.TextInput import TextInput
 from UI.Button import Button
+from core.protocols import AgentProtocol
 
 
 class _LoadMapButton:
-    def __init__(self, scene):
+    def __init__(self, scene: "BenchmarkScene"):
         self.scene = scene
 
-    def action(self):
+    def action(self) -> None:
         self.scene.load_map()
 
 
 class _StartBenchmarkButton:
-    def __init__(self, scene):
+    def __init__(self, scene: "BenchmarkScene"):
         self.scene = scene
 
-    def action(self):
+    def action(self) -> None:
         self.scene.start_benchmark()
 
 
@@ -171,11 +174,11 @@ class BenchmarkScene:
         # načti mapu hned na start
         self.load_map()
 
-    def restart(self):
+    def restart(self) -> None:
         self.active = True
         self._reset_run_state(keep_map=True)
 
-    def _reset_run_state(self, *, keep_map: bool):
+    def _reset_run_state(self, *, keep_map: bool) -> None:
         self.cars_group.empty()
         self.cars.clear()
 
@@ -191,7 +194,7 @@ class BenchmarkScene:
             self.start_pos = None
             self.finish_rect = None
 
-    def load_map(self):
+    def load_map(self) -> None:
         name = self.input_map.get_text("DefaultRace")
         map_file = self.scene_manager.resolve_map_path(name)
         if not os.path.exists(map_file):
@@ -397,7 +400,7 @@ class BenchmarkScene:
             return engines
         return self._parse_engines(self.input_engines.get_text("") or "")
 
-    def _load_brain(self, engine_class_name: str, save_file_name: str):
+    def _load_brain(self, engine_class_name: str, save_file_name: str) -> AgentProtocol | None:
         try:
             BrainClass = self.scene_manager.get_agent_class(engine_class_name)
             if BrainClass is None:
@@ -425,7 +428,7 @@ class BenchmarkScene:
 
         return brain
 
-    def start_benchmark(self):
+    def start_benchmark(self) -> None:
         if self.Blocks is None or self.start_pos is None:
             print("ERROR: nejdřív načti mapu")
             return
@@ -489,7 +492,7 @@ class BenchmarkScene:
             return False
         return self.finish_rect.collidepoint(int(car.pos.x), int(car.pos.y))
 
-    def _finalize(self, *, reason: str):
+    def _finalize(self, *, reason: str) -> None:
         # zastav a označ zbylá auta
         for car in self.cars:
             if getattr(car, "has_finished", False):
@@ -504,7 +507,7 @@ class BenchmarkScene:
         self._build_results()
         self._save_results()
 
-    def _build_results(self):
+    def _build_results(self) -> None:
         self.results = []
         for car in self.cars:
             brain = car.brain
@@ -545,7 +548,7 @@ class BenchmarkScene:
             )
 
     @staticmethod
-    def _result_sort_key(result: dict):
+    def _result_sort_key(result: dict) -> tuple[int, float, int]:
         order = result.get("benchmark_order", 999999)
         try:
             order = int(order)
@@ -583,7 +586,7 @@ class BenchmarkScene:
         p.parent.mkdir(parents=True, exist_ok=True)
         return p
 
-    def _save_results(self):
+    def _save_results(self) -> None:
         if not self.results:
             return
 
@@ -626,7 +629,7 @@ class BenchmarkScene:
         self.last_saved_path = out_path
         print(f"Benchmark výsledky uloženy do: {out_path.as_posix()}")
 
-    def update(self, dt, keys):
+    def update(self, dt: float, keys) -> None:
         for inp in (
             self.input_map,
             self.input_finish_row, self.input_finish_col,
@@ -685,7 +688,7 @@ class BenchmarkScene:
             self._save_results()
             self.benchmark_active = False
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.Surface) -> None:
         screen.fill(BLACK)
 
         # mapa
@@ -738,7 +741,7 @@ class BenchmarkScene:
                 screen.blit(s, (20, y))
                 y += self.font_small.get_linesize()
 
-    def _draw_car_numbers(self, screen):
+    def _draw_car_numbers(self, screen: pygame.Surface) -> None:
         if not self.cars:
             return
 
@@ -768,7 +771,7 @@ class BenchmarkScene:
             rect = label.get_rect(center=(x, y))
             screen.blit(label, rect)
 
-    def _draw_benchmark_labels(self, screen, y_start):
+    def _draw_benchmark_labels(self, screen: pygame.Surface, y_start: int) -> None:
         if not self.cars:
             return
 
@@ -794,14 +797,14 @@ class BenchmarkScene:
                 break
 
     @staticmethod
-    def _car_brain_name(car):
+    def _car_brain_name(car: AI_car) -> str:
         brain = getattr(car, "brain", None)
         if brain is None:
             return "<noname>"
         return str(getattr(brain, "NAME", None) or getattr(brain, "_engine_class", "<noname>"))
 
     @staticmethod
-    def _benchmark_order_key(car):
+    def _benchmark_order_key(car: AI_car) -> int:
         order = getattr(car, "benchmark_order", None)
         if order is None:
             return 999999
@@ -811,7 +814,7 @@ class BenchmarkScene:
             return 999999
 
     @staticmethod
-    def _fit_text(text, font, max_width):
+    def _fit_text(text: str, font: pygame.font.Font, max_width: int) -> str:
         if font.size(text)[0] <= max_width:
             return text
 
@@ -824,7 +827,7 @@ class BenchmarkScene:
             trimmed += ch
         return trimmed.rstrip() + suffix
 
-    def event(self, event):
+    def event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             self.scene_manager.set_menu()
 
@@ -841,8 +844,8 @@ class BenchmarkScene:
         ):
             inp.handle_event(event)
 
-    def is_active(self):
+    def is_active(self) -> bool:
         return self.active
 
-    def reset(self):
+    def reset(self) -> None:
         pass

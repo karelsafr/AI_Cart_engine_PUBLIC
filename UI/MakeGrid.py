@@ -1,6 +1,18 @@
-import pygame
+from __future__ import annotations
 
-def MakeGrid(screen, stepx, stepy, nx, ny, col, HEIGHT, WIDTH):
+import pygame
+from core.protocols import ColorRGB
+
+def MakeGrid(
+    screen: pygame.Surface,
+    stepx: int,
+    stepy: int,
+    nx: int,
+    ny: int,
+    col: ColorRGB,
+    HEIGHT: int,
+    WIDTH: int,
+) -> None:
     for i in range(ny+1):
         for j in range(nx+1):
             pygame.draw.line(surface = screen, color = col, start_pos=(0+i*(stepy), 0),

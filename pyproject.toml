@@ -1,0 +1,37 @@
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+include = [
+    "main.py",
+    "constants.py",
+    "AI_engines",
+    "core",
+    "my_sprites",
+    "scenes",
+    "UI",
+]
+exclude = [
+    ".venv",
+    "**/__pycache__",
+    "students/agents",
+]
+reportMissingTypeStubs = false
+
+[tool.mypy]
+python_version = "3.12"
+files = [
+    "main.py",
+    "constants.py",
+    "AI_engines",
+    "core",
+    "my_sprites",
+    "scenes",
+    "UI",
+]
+exclude = [
+    "^\\.venv/",
+    "^students/agents/",
+]
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true

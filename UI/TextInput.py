@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import pygame
 
 class TextInput:
-    def __init__(self, rect, font, placeholder=""):
+    def __init__(self, rect: pygame.Rect, font: pygame.font.Font, placeholder: str = ""):
         self.rect = pygame.Rect(rect)
         self.font = font
         self.text = ""
@@ -11,7 +13,7 @@ class TextInput:
         self.caret_visible = True
         self.caret_timer = 0.0
 
-    def handle_event(self, event):
+    def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             self.focused = self.rect.collidepoint(event.pos)
             # jednoduché: skoč kurzorem na konec
@@ -39,17 +41,17 @@ class TextInput:
             elif event.key == pygame.K_RETURN:
                 pass  # potvrzení (např. zavolat callback s textem)
 
-    def update(self, dt):
+    def update(self, dt: float) -> None:
         self.caret_timer += dt
         if self.caret_timer >= 0.5:
             self.caret_timer = 0.0
             self.caret_visible = not self.caret_visible
 
-    def set_default(self, text):
+    def set_default(self, text: str) -> None:
         self.text = text
         self.caret_pos = len(self.text)
 
-    def draw(self, surf):
+    def draw(self, surf: pygame.Surface) -> None:
         # rámeček
         pygame.draw.rect(surf, (245,245,245), self.rect, border_radius=6)
         pygame.draw.rect(surf, (80,80,80), self.rect, 2, border_radius=6)

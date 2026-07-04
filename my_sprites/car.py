@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import math
 import pygame
-from constants import WHITE, SPEED, MAX_SPEED, TILESIZE, TURN_SPEED, BREAK_SPEED, FRICTION_SPEED,RAYCAST_ANGLES
+from constants import SPEED, MAX_SPEED, TILESIZE, TURN_SPEED, BREAK_SPEED, FRICTION_SPEED,RAYCAST_ANGLES
 from core.TextureAtlas import TextureAtlas
 
 class car(pygame.sprite.Sprite):
@@ -10,7 +12,7 @@ class car(pygame.sprite.Sprite):
     def set_atlas(cls, atlas: TextureAtlas) -> None:
         cls.atlas = atlas
 
-    def __init__(self, x, y, width, height):
+    def __init__(self, x: float, y: float, width: int, height: int):
         super().__init__()
 
         if car.atlas is None:
@@ -46,13 +48,13 @@ class car(pygame.sprite.Sprite):
         self.ray_angles = RAYCAST_ANGLES
         self.ray_distances: list[float] = [0.0 for _ in self.ray_angles]
 
-    def get_rel_pos(self):
+    def get_rel_pos(self) -> tuple[float, float]:
         return (
             self.pos.x / (TILESIZE * 10),
             self.pos.y / (TILESIZE * 10)
         )
 
-    def update(self, dt, keys, blocks):
+    def update(self, dt: float, keys, blocks) -> None:
         # řízení rychlosti
         if keys[pygame.K_UP]:
             self.speed += self.acceleration * dt
@@ -93,7 +95,7 @@ class car(pygame.sprite.Sprite):
         # (bacha, bude to spamovat konzoli, ale na test je to dobré)
         # print([round(d, 2) for d in self.ray_distances])
 
-    def update_rays(self, blocks):
+    def update_rays(self, blocks) -> None:
         """Spočítá vzdálenost k nejbližšímu bloku pro každou ray_angle."""
         if blocks.mask is None:
             return

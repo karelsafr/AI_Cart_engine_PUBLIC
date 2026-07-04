@@ -1,12 +1,15 @@
+from __future__ import annotations
+
 from numpy import random as np_random
 import random
 import numpy as np
 import copy
 import string
+from typing import Any, Sequence
 
 # vzdy pojmenováváme jako "AIbrain_jemnoteamu"
 class AIbrain_TeamName:
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.score = 0
 
@@ -16,7 +19,7 @@ class AIbrain_TeamName:
 
         self.init_param()
 
-    def init_param(self):
+    def init_param(self) -> None:
         self.w1 = np_random.rand(4)
         self.w2 = np_random.rand(4)
         self.NAME ="Safr_"+''.join(random.choices(self.chars, k=5))
@@ -24,14 +27,14 @@ class AIbrain_TeamName:
         # vzdy ulozit:
         self.store()
 
-    def store(self):
+    def store(self) -> None:
         self.parameters = copy.deepcopy({
             'w1': self.w1,
             'w2': self.w2,
             "NAME": self.NAME,
         })
 
-    def decide(self, data):
+    def decide(self, data: Sequence[float]) -> np.ndarray:
         self.decider += 1
         if np.round(self.decider) % 2 == 1:
             return np.round(self.w1)
@@ -39,7 +42,7 @@ class AIbrain_TeamName:
             return np.round(self.w2)
 
     # mezi epochama bdue nutné mutovat, studenti si udelaj sami
-    def mutate(self):
+    def mutate(self) -> None:
         if np_random.rand(1) < 0.5:
             self.w1 = np.array([float(i+  (np.round(np_random.rand(1))-0.5)/4) for i in self.w1])
             self.NAME += "_MUT_W1_"+''.join(random.choices(self.chars, k=3))
@@ -52,23 +55,23 @@ class AIbrain_TeamName:
 
 
     # do techto funkcí není treba zasahovat:
-    def calculate_score(self, distance, time, no):
+    def calculate_score(self, distance: float, time: float, no: int) -> None:
         self.score = distance/time + no
 
-    def passcardata(self, x, y, speed):
+    def passcardata(self, x: float, y: float, speed: float) -> None:
         self.x = x
         self.y = y
         self.speed = speed
 
-    def getscore(self):
+    def getscore(self) -> float:
         return self.score
 
     #### nutné dospat!!!
-    def get_parameters(self):
+    def get_parameters(self) -> dict[str, Any]:
         """Getter pro získání všech parametrů"""
         return copy.deepcopy(self.parameters)
 
-    def set_parameters(self, parameters):
+    def set_parameters(self, parameters: Any) -> None:
         """Setter pro nastavení všech parametrů"""
         if isinstance(parameters, np.lib.npyio.NpzFile):
             # Z NpzFile rovnou udělám nový slovník (tím "odstřihnu" file handler)

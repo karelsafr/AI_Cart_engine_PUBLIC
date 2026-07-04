@@ -19,6 +19,8 @@ Ochranné mechanismy proti degradaci:
 - Exploration boost: 5% šance na větší mutaci pro únik z lokálních minim
 """
 
+from __future__ import annotations
+
 import numpy as np
 from numpy import random as np_random
 import random

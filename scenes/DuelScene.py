@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pygame, os
 import numpy as np
 from pathlib import Path
@@ -13,21 +15,22 @@ from my_sprites.AI_car import AI_car
 from my_sprites.block import Blocks
 from UI.TextInput import TextInput
 from UI.Button import Button
+from core.protocols import AgentProtocol
 
 
 class _LoadMapButton:
-    def __init__(self, duel_scene):
+    def __init__(self, duel_scene: "DuelScene"):
         self.duel_scene = duel_scene
 
-    def action(self):
+    def action(self) -> None:
         self.duel_scene.load_map()
 
 
 class _StartRaceButton:
-    def __init__(self, duel_scene):
+    def __init__(self, duel_scene: "DuelScene"):
         self.duel_scene = duel_scene
 
-    def action(self):
+    def action(self) -> None:
         self.duel_scene.start_race()
 
 
@@ -144,7 +147,7 @@ class DuelScene:
         # Načti defaultní mapu
         self.load_map()
 
-    def restart(self):
+    def restart(self) -> None:
         """Resetuje duel, ale nechává načtenou mapu."""
         self.active = True
         self.cars_group.empty()
@@ -157,7 +160,7 @@ class DuelScene:
         if self.Blocks is None:
             self.load_map()
 
-    def load_map(self):
+    def load_map(self) -> None:
         """Načte mapu podle textinputu a připraví bloky a kontrolní čáry."""
         name = self.input_map.get_text("DefaultRace")
         map_file = self.scene_manager.resolve_map_path(name)
@@ -176,7 +179,7 @@ class DuelScene:
 
         print(f"Mapa pro duel načtena: {map_file}")
 
-    def _init_start_and_gates(self):
+    def _init_start_and_gates(self) -> None:
         """Najde start tile road_dirt42 a určí souřadnice startu a bran."""
         grid = self.scene_manager.cur_tmap.grid
         start_x = None
@@ -220,7 +223,7 @@ class DuelScene:
         # Kill brána za autem - vpravo od startu
         self.kill_x = start_x + offset
 
-    def _load_brain(self, engine_class_name: str, save_file_name: str):
+    def _load_brain(self, engine_class_name: str, save_file_name: str) -> AgentProtocol | None:
         """Dynamicky načte třídu brainu a případně nahraje parametry z .npz."""
         try:
             BrainClass = self.scene_manager.get_agent_class(engine_class_name)
@@ -249,7 +252,7 @@ class DuelScene:
 
         return brain
 
-    def start_race(self):
+    def start_race(self) -> None:
         """Vytvoří dvě auta, načte mozky a spustí duel."""
         if self.Blocks is None or self.start_pos is None:
             print("ERROR: nejdřív načti mapu (LOAD MAP)")
@@ -293,7 +296,7 @@ class DuelScene:
 
         print("Duel startuje")
 
-    def _register_finish(self, car: AI_car):
+    def _register_finish(self, car: AI_car) -> None:
         """Nastaví pořadí, čas a uloží textový výsledek."""
         if getattr(car, "has_finished", False):
             return
@@ -328,14 +331,14 @@ class DuelScene:
             self.race_active = False
             self._print_results_to_console()
 
-    def _print_results_to_console(self):
+    def _print_results_to_console(self) -> None:
         print("===== VÝSLEDKY DUELU =====")
         for line in self.results_lines:
             print(line)
         print("==========================")
 
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.Surface) -> None:
         screen.fill(BLACK)
 
         # mapa
@@ -398,7 +401,7 @@ class DuelScene:
             screen.blit(s, (20, y))
             y += self.font_small.get_linesize()
 
-    def update(self, dt, keys):
+    def update(self, dt: float, keys) -> None:
         # text input
         for inp in (
             self.input_map,
@@ -463,7 +466,7 @@ class DuelScene:
         if self.race_active and all((not c.running) for c in self.cars):
             self.race_active = False
 
-    def event(self, event):
+    def event(self, event: pygame.event.Event) -> None:
         # ESC - zpět do menu
         if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             self.scene_manager.set_menu()
@@ -482,12 +485,12 @@ class DuelScene:
         ):
             inp.handle_event(event)
 
-    def check_mouse_click(self, x, y):
+    def check_mouse_click(self, x: int, y: int) -> None:
         # zatím nic speciálního
         pass
 
-    def is_active(self):
+    def is_active(self) -> bool:
         return self.active
 
-    def reset(self):
+    def reset(self) -> None:
         pass

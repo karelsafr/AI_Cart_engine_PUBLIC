@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import pygame, sys, os
+from pathlib import Path
 
 from constants import BLACK, WHITE, TILESIZE, SPEED, MAX_SPEED, tilesides, MAP_BUTTON_FONTSIZE
 from constants import BLACK, GREY, WIDTH, HEIGHT, MAP_MENUSIZE, MAP_BUTTON_IDENT, MAP_BUTTON_HEIGHT, MAP_BUTTON_WIDTH
@@ -11,10 +14,10 @@ from my_sprites.AI_car import AI_car
 
 
 class load_tmap_raw:
-    def __init__(self, scenemanager, filename):
+    def __init__(self, scenemanager, filename: str | Path):
         self.scenemanager = scenemanager
         self.filename = filename
-    def action(self):
+    def action(self) -> None:
         if os.path.exists(self.filename):
             self.scenemanager.load_tmap(self.filename)
         else:
@@ -22,10 +25,10 @@ class load_tmap_raw:
 
 
 class startbutton:
-    def __init__(self, training_scene):
+    def __init__(self, training_scene: "Training"):
         self.training_scene = training_scene
 
-    def action(self):
+    def action(self) -> None:
         for input in self.training_scene.text_inputs:
             if input.placeholder == "pocet_aut":
                 self.training_scene.input_data[input.placeholder] = input.get_int(10)
@@ -44,18 +47,18 @@ class startbutton:
         self.training_scene.start()
 
 class savebutton:
-    def __init__(self, training_scene):
+    def __init__(self, training_scene: "Training"):
         self.training_scene = training_scene
-    def action(self):
+    def action(self) -> None:
         for input in self.training_scene.text_inputs:
             if input.placeholder == "save_as":
                 self.training_scene.input_data[input.placeholder] = input.get_text("userbrain.npz")
         self.training_scene.cars_manager.save(self.training_scene.input_data["save_as"])
 
 class loadbutton:
-    def __init__(self, training_scene):
+    def __init__(self, training_scene: "Training"):
         self.training_scene = training_scene
-    def action(self):
+    def action(self) -> None:
         for input in self.training_scene.text_inputs:
             if input.placeholder == "pocet_aut":
                 self.training_scene.input_data[input.placeholder] = input.get_int(10)
@@ -78,31 +81,31 @@ class loadbutton:
         self.training_scene.cars_manager.load(self.training_scene.input_data["load_from"])
 
 class pausebutton:
-    def __init__(self, training_scene):
+    def __init__(self, training_scene: "Training"):
         self.training_scene = training_scene
 
-    def action(self):
+    def action(self) -> None:
         self.training_scene.pause_resume()
 
 class nextgenerationbutton:
-    def __init__(self, training_scene):
+    def __init__(self, training_scene: "Training"):
         self.training_scene = training_scene
 
-    def action(self):
+    def action(self) -> None:
         self.training_scene.next_generation()
 
 class resetrunbutton:
-    def __init__(self, training_scene):
+    def __init__(self, training_scene: "Training"):
         self.training_scene = training_scene
 
-    def action(self):
+    def action(self) -> None:
         self.training_scene.reset_run()
 
 class reloadsettingsbutton:
-    def __init__(self, training_scene):
+    def __init__(self, training_scene: "Training"):
         self.training_scene = training_scene
 
-    def action(self):
+    def action(self) -> None:
         self.training_scene.reload_settings()
 
 # testovací mapa:
@@ -169,12 +172,12 @@ class Training:
             Button((bx, by + row_step * 3), (MAP_BUTTON_WIDTH, button_h), "RELOAD SET", self.font_button_small, reloadsettingsbutton(self)),
         ]
 
-    def restart(self):
+    def restart(self) -> None:
         self.cars_manager = Car_manager(**self.input_data)
         self.Blocks = Blocks(TILESIZE, 50, self.scene_manager.cur_tmap.grid, tilesides)
         self.Blocks.constructBG()
 
-    def start(self):
+    def start(self) -> None:
         self.cars_manager.setup(**self.input_data)
         self.cars_manager.add_defaultbrain(self.scene_manager.get_brain())
         self.cars_manager.set_run_metadata(
@@ -183,19 +186,19 @@ class Training:
         )
         self.cars_manager.start()
 
-    def stop(self):
+    def stop(self) -> None:
         self.cars_manager.stop()
 
-    def pause_resume(self):
+    def pause_resume(self) -> None:
         self.cars_manager.toggle_pause()
 
-    def next_generation(self):
+    def next_generation(self) -> None:
         self.cars_manager.next_generation()
 
-    def reset_run(self):
+    def reset_run(self) -> None:
         self.cars_manager.reset_run()
 
-    def reload_settings(self):
+    def reload_settings(self) -> None:
         for input in self.text_inputs:
             if input.placeholder == "pocet_aut":
                 self.input_data[input.placeholder] = input.get_int(self.input_data["pocet_aut"])
@@ -216,12 +219,12 @@ class Training:
             load_from=self.input_data["load_from"],
         )
 
-    def get_map_name(self,mapname):
+    def get_map_name(self,mapname: str | Path) -> None:
         self.map_name = mapname
         self.loader = load_tmap_raw(self.scene_manager, self.map_name)
         self.loader.action()
 
-    def draw(self, screen):
+    def draw(self, screen: pygame.Surface) -> None:
         screen.fill(BLACK)
 
         self.scene_manager.cur_tmap.draw(screen)
@@ -248,7 +251,7 @@ class Training:
 
         self.draw_training_monitor(screen)
 
-    def update(self, dt, keys):
+    def update(self, dt: float, keys) -> None:
         #self.cars.update(dt, keys, self.Blocks)
 
         for text in self.text_inputs:
@@ -256,7 +259,7 @@ class Training:
 
         self.cars_manager.update(dt, keys, self.Blocks)
 
-    def _fit_monitor_text(self, text, max_width):
+    def _fit_monitor_text(self, text: str, max_width: int) -> str:
         if self.font_monitor.size(text)[0] <= max_width:
             return text
 
@@ -265,7 +268,7 @@ class Training:
             text = text[:-1]
         return text + suffix if text else suffix
 
-    def draw_training_monitor(self, screen):
+    def draw_training_monitor(self, screen: pygame.Surface) -> None:
         stats = self.cars_manager.get_training_stats()
 
         x = WIDTH - MAP_MENUSIZE + MAP_BUTTON_IDENT
@@ -299,12 +302,12 @@ class Training:
             surf = self.font_monitor.render(shown, True, color)
             screen.blit(surf, (x + 3, y + i * line_h))
 
-    def update_control_labels(self):
+    def update_control_labels(self) -> None:
         for button in self.buttons:
             if button.ButtonID == "pause_toggle":
                 button.set_text("RESUME" if self.cars_manager.paused else "PAUSE")
 
-    def event(self, event):
+    def event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
             self.check_mouse_click(x, y)
@@ -322,11 +325,11 @@ class Training:
 
         # nejde o updaty pro akce ve hre, jen jednorázové zálezitosti zde!!
 
-    def check_mouse_click(self, x, y):
+    def check_mouse_click(self, x: int, y: int) -> None:
         pass
 
-    def is_active(self):
+    def is_active(self) -> bool:
         return self.active
 
-    def reset(self):
+    def reset(self) -> None:
         pass
