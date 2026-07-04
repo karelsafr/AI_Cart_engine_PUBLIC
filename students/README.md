@@ -2,6 +2,8 @@
 
 Tato složka je určená pro studentské agenty, savy, mapy a benchmark výstupy. Engine je mimo tuto složku.
 
+Podrobný studentský návod je v `../STUDENT_GUIDE.md`. Přesný kontrakt agenta je v `../AGENT_INTERFACE.md`.
+
 ```text
 students/
 ├── agents/                 # AIbrain_<NazevTymu>.py

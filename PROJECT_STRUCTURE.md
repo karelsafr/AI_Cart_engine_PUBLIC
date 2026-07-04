@@ -8,7 +8,8 @@ Tento dokument popisuje aktuální strukturu projektu a hranice mezi enginem a s
 AI_Cart_engine_V2/
 ├── main.py                         # start aplikace, inicializace Pygame, atlasů, scén a agent registry
 ├── constants.py                    # konstanty okna, cest, dlaždic, rychlostí a raycastů
-├── README.md                       # hlavní návod pro studenty
+├── README.md                       # stručný rozcestník projektu
+├── STUDENT_GUIDE.md                # hlavní návod pro studenty
 ├── AGENT_INTERFACE.md              # stabilní kontrakt mezi enginem a agentem
 ├── PROJECT_STRUCTURE.md            # tato mapa projektu
 ├── pyproject.toml                  # konfigurace typovacích nástrojů
@@ -246,7 +247,8 @@ students/results/
 
 ## Dokumentace
 
-- `README.md` - postupy pro studenty
+- `README.md` - stručný rozcestník projektu
+- `STUDENT_GUIDE.md` - postupy pro studenty
 - `AGENT_INTERFACE.md` - přesné rozhraní studentského agenta vůči enginu
 - `students/README.md` - krátký návod přímo ve studentském workspace
 - `PROJECT_STRUCTURE.md` - technická mapa projektu
